@@ -193,6 +193,11 @@ func (d *Database[T]) Remove() *soy.Delete[T] {
 	return d.executor.Soy().Remove()
 }
 
+// Count returns an aggregate builder for counting records.
+func (d *Database[T]) Count() *soy.Aggregate[T] {
+	return d.executor.Soy().Count()
+}
+
 // ExecQuery executes a query statement and returns multiple records.
 func (d *Database[T]) ExecQuery(ctx context.Context, stmt edamame.QueryStatement, params map[string]any) ([]*T, error) {
 	return d.executor.ExecQuery(ctx, stmt, params)
