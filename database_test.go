@@ -350,6 +350,33 @@ func TestDatabase_RemoveBuilder(t *testing.T) {
 	}
 }
 
+func TestDatabase_CountBuilder(t *testing.T) {
+	mockDB, capture := mockdb.New()
+	ctx := context.Background()
+
+	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
+	if err != nil {
+		t.Fatalf("NewDatabase failed: %v", err)
+	}
+
+	// Use the Count builder directly
+	_, _ = db.Count().
+		Where("age", ">=", "min_age").
+		Exec(ctx, map[string]any{"min_age": 18})
+
+	query, ok := capture.Last()
+	if !ok {
+		t.Fatal("no query captured")
+	}
+
+	if !strings.Contains(query.Query, "COUNT") {
+		t.Errorf("expected COUNT in query, got: %s", query.Query)
+	}
+	if !strings.Contains(query.Query, `"age"`) {
+		t.Errorf("expected age column in WHERE, got: %s", query.Query)
+	}
+}
+
 func TestDatabase_ExecQuery(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
