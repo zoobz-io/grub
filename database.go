@@ -10,7 +10,7 @@ import (
 	"github.com/zoobzio/astql"
 	"github.com/zoobzio/atom"
 	"github.com/zoobzio/edamame"
-	atomic "github.com/zoobzio/grub/internal/atomic"
+	"github.com/zoobzio/grub/internal/atomix"
 	"github.com/zoobzio/soy"
 )
 
@@ -29,7 +29,7 @@ type Database[T any] struct {
 	executor   *edamame.Executor[T]
 	keyCol     string
 	tableName  string
-	atomic     *atomic.Database[T] // lazily created via Atomic()
+	atomic     *atomix.Database[T] // lazily created via Atomic()
 	atomicOnce sync.Once
 }
 
@@ -303,7 +303,7 @@ func (d *Database[T]) ExecAggregateTx(ctx context.Context, tx *sqlx.Tx, stmt eda
 }
 
 // Atomic returns an atom-based view of this database.
-// The returned atomic.Database satisfies the AtomicDatabase interface.
+// The returned atomix.Database satisfies the AtomicDatabase interface.
 // The instance is created once and cached for subsequent calls.
 // Panics if T is not atomizable (a programmer error).
 func (d *Database[T]) Atomic() AtomicDatabase {
@@ -312,7 +312,7 @@ func (d *Database[T]) Atomic() AtomicDatabase {
 		if err != nil {
 			panic("grub: invalid type for atomization: " + err.Error())
 		}
-		d.atomic = atomic.New(
+		d.atomic = atomix.New(
 			d.executor,
 			d.keyCol,
 			d.tableName,

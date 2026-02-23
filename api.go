@@ -68,7 +68,7 @@ type StoreProvider interface {
 }
 
 // AtomicStore defines atom-based key-value storage operations.
-// atomic.Store[T] satisfies this interface, enabling type-agnostic access
+// atomix.Store[T] satisfies this interface, enabling type-agnostic access
 // for framework internals (field-level encryption, pipelines, etc.).
 type AtomicStore interface {
 	// Spec returns the atom spec describing the stored type's structure.
@@ -91,7 +91,7 @@ type AtomicStore interface {
 }
 
 // AtomicDatabase defines atom-based storage operations for a single table.
-// atomic.Database[T] satisfies this interface, enabling type-agnostic access
+// atomix.Database[T] satisfies this interface, enabling type-agnostic access
 // for framework internals (field-level encryption, pipelines, etc.).
 type AtomicDatabase interface {
 	// Table returns the table name this provider manages.
@@ -148,7 +148,7 @@ type BucketProvider interface {
 type AtomicObject = shared.AtomicObject
 
 // AtomicBucket defines atom-based blob storage operations.
-// atomic.Bucket[T] satisfies this interface, enabling type-agnostic access
+// atomix.Bucket[T] satisfies this interface, enabling type-agnostic access
 // for framework internals (field-level encryption, pipelines, etc.).
 type AtomicBucket interface {
 	// Spec returns the atom spec describing the payload T structure.
@@ -238,7 +238,7 @@ type VectorProvider interface {
 type AtomicVector = shared.AtomicVector
 
 // AtomicIndex defines atom-based vector storage operations.
-// atomic.Index[T] satisfies this interface, enabling type-agnostic access
+// atomix.Index[T] satisfies this interface, enabling type-agnostic access
 // for framework internals (field-level encryption, pipelines, etc.).
 type AtomicIndex interface {
 	// Spec returns the atom spec describing the metadata type's structure.
@@ -314,7 +314,7 @@ type SearchProvider interface {
 type AtomicDocument = shared.AtomicDocument
 
 // AtomicSearch defines atom-based search operations.
-// atomic.Search[T] satisfies this interface, enabling type-agnostic access
+// atomix.Search[T] satisfies this interface, enabling type-agnostic access
 // for framework internals (field-level encryption, pipelines, etc.).
 type AtomicSearch interface {
 	// Index returns the index name this provider manages.

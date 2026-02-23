@@ -1043,3 +1043,19 @@ func TestSearch_JSONRoundTrip(t *testing.T) {
 		t.Errorf("Category mismatch: %q vs %q", parsed.Category, original.Category)
 	}
 }
+
+func TestNewSearch_BuilderError(t *testing.T) {
+	provider := newMockSearchProvider()
+	_, err := NewSearch[int](provider, "test")
+	if err == nil {
+		t.Error("expected error for non-struct type")
+	}
+}
+
+func TestNewSearchWithCodec_BuilderError(t *testing.T) {
+	provider := newMockSearchProvider()
+	_, err := NewSearchWithCodec[int](provider, "test", JSONCodec{})
+	if err == nil {
+		t.Error("expected error for non-struct type")
+	}
+}

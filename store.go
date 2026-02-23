@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/zoobzio/atom"
-	atomic "github.com/zoobzio/grub/internal/atomic"
+	"github.com/zoobzio/grub/internal/atomix"
 )
 
 // Store provides type-safe key-value storage operations for T.
@@ -14,7 +14,7 @@ import (
 type Store[T any] struct {
 	provider   StoreProvider
 	codec      Codec
-	atomic     *atomic.Store[T]
+	atomic     *atomix.Store[T]
 	atomicOnce sync.Once
 }
 
@@ -136,16 +136,16 @@ func (s *Store[T]) SetBatch(ctx context.Context, items map[string]*T, ttl time.D
 }
 
 // Atomic returns an atom-based view of this store.
-// The returned atomic.Store satisfies the AtomicStore interface.
+// The returned atomix.Store satisfies the AtomicStore interface.
 // The instance is created once and cached for subsequent calls.
 // Panics if T is not atomizable (a programmer error).
-func (s *Store[T]) Atomic() *atomic.Store[T] {
+func (s *Store[T]) Atomic() *atomix.Store[T] {
 	s.atomicOnce.Do(func() {
 		atomizer, err := atom.Use[T]()
 		if err != nil {
 			panic("grub: invalid type for atomization: " + err.Error())
 		}
-		s.atomic = atomic.NewStore[T](s.provider, s.codec, atomizer.Spec())
+		s.atomic = atomix.NewStore[T](s.provider, s.codec, atomizer.Spec())
 	})
 	return s.atomic
 }

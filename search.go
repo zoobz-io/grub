@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/zoobzio/atom"
-	atomic "github.com/zoobzio/grub/internal/atomic"
+	"github.com/zoobzio/grub/internal/atomix"
 	"github.com/zoobzio/lucene"
 )
 
@@ -32,7 +32,7 @@ type Search[T any] struct {
 	index      string
 	codec      Codec
 	builder    *lucene.Builder[T]
-	atomic     *atomic.Search[T]
+	atomic     *atomix.Search[T]
 	atomicOnce sync.Once
 }
 
@@ -211,13 +211,13 @@ func (s *Search[T]) Refresh(ctx context.Context) error {
 // Atomic returns an atom-based view of this search index.
 // The instance is created once and cached for subsequent calls.
 // Panics if T is not atomizable (a programmer error).
-func (s *Search[T]) Atomic() *atomic.Search[T] {
+func (s *Search[T]) Atomic() *atomix.Search[T] {
 	s.atomicOnce.Do(func() {
 		atomizer, err := atom.Use[T]()
 		if err != nil {
 			panic("grub: invalid type for atomization: " + err.Error())
 		}
-		s.atomic = atomic.NewSearch[T](s.provider, s.index, s.codec, atomizer.Spec())
+		s.atomic = atomix.NewSearch[T](s.provider, s.index, s.codec, atomizer.Spec())
 	})
 	return s.atomic
 }

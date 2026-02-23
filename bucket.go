@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/zoobzio/atom"
-	atomic "github.com/zoobzio/grub/internal/atomic"
+	"github.com/zoobzio/grub/internal/atomix"
 )
 
 // Bucket provides type-safe blob storage operations for T.
@@ -13,7 +13,7 @@ import (
 type Bucket[T any] struct {
 	provider   BucketProvider
 	codec      Codec
-	atomic     *atomic.Bucket[T]
+	atomic     *atomix.Bucket[T]
 	atomicOnce sync.Once
 }
 
@@ -101,16 +101,16 @@ func (b *Bucket[T]) List(ctx context.Context, prefix string, limit int) ([]Objec
 }
 
 // Atomic returns an atom-based view of this bucket.
-// The returned atomic.Bucket satisfies the AtomicBucket interface.
+// The returned atomix.Bucket satisfies the AtomicBucket interface.
 // The instance is created once and cached for subsequent calls.
 // Panics if T is not atomizable (a programmer error).
-func (b *Bucket[T]) Atomic() *atomic.Bucket[T] {
+func (b *Bucket[T]) Atomic() *atomix.Bucket[T] {
 	b.atomicOnce.Do(func() {
 		atomizer, err := atom.Use[T]()
 		if err != nil {
 			panic("grub: invalid type for atomization: " + err.Error())
 		}
-		b.atomic = atomic.NewBucket[T](b.provider, b.codec, atomizer.Spec())
+		b.atomic = atomix.NewBucket[T](b.provider, b.codec, atomizer.Spec())
 	})
 	return b.atomic
 }
