@@ -11,6 +11,7 @@ import (
 	"github.com/zoobzio/atom"
 	"github.com/zoobzio/edamame"
 	"github.com/zoobzio/grub/internal/shared"
+	"github.com/zoobzio/lucene"
 	"github.com/zoobzio/vecna"
 )
 
@@ -265,4 +266,77 @@ type AtomicIndex interface {
 
 	// Filter returns vectors matching the metadata filter without similarity search.
 	Filter(ctx context.Context, filter *vecna.Filter, limit int) ([]AtomicVector, error)
+}
+
+// SearchHit represents a single search result.
+type SearchHit = shared.SearchHit
+
+// SearchResponse represents the response from a search operation.
+type SearchResponse = shared.SearchResponse
+
+// SearchProvider defines raw search/document storage operations.
+// Implementations (opensearch, elasticsearch) satisfy this interface.
+type SearchProvider interface {
+	// Index stores a document with the given ID.
+	// If the ID exists, the document is replaced.
+	Index(ctx context.Context, index, id string, doc []byte) error
+
+	// IndexBatch stores multiple documents.
+	IndexBatch(ctx context.Context, index string, docs map[string][]byte) error
+
+	// Get retrieves a document by ID.
+	// Returns ErrNotFound if the ID does not exist.
+	Get(ctx context.Context, index, id string) ([]byte, error)
+
+	// Delete removes a document by ID.
+	// Returns ErrNotFound if the ID does not exist.
+	Delete(ctx context.Context, index, id string) error
+
+	// DeleteBatch removes multiple documents by ID.
+	// Non-existent IDs are silently ignored.
+	DeleteBatch(ctx context.Context, index string, ids []string) error
+
+	// Exists checks whether a document ID exists.
+	Exists(ctx context.Context, index, id string) (bool, error)
+
+	// Search performs a search using the provided search request.
+	Search(ctx context.Context, index string, search *lucene.Search) (*SearchResponse, error)
+
+	// Count returns the number of documents matching the query.
+	Count(ctx context.Context, index string, query lucene.Query) (int64, error)
+
+	// Refresh makes recent operations visible for search.
+	Refresh(ctx context.Context, index string) error
+}
+
+// AtomicDocument holds a search document with atomized content.
+// Used by AtomicSearch for type-agnostic access to document data.
+type AtomicDocument = shared.AtomicDocument
+
+// AtomicSearch defines atom-based search operations.
+// atomic.Search[T] satisfies this interface, enabling type-agnostic access
+// for framework internals (field-level encryption, pipelines, etc.).
+type AtomicSearch interface {
+	// Index returns the index name this provider manages.
+	Index() string
+
+	// Spec returns the atom spec describing the document type's structure.
+	Spec() atom.Spec
+
+	// Get retrieves the document at ID with atomized content.
+	// Returns ErrNotFound if the ID does not exist.
+	Get(ctx context.Context, id string) (*AtomicDocument, error)
+
+	// Index stores a document with atomized content.
+	IndexDoc(ctx context.Context, id string, doc *atom.Atom) error
+
+	// Delete removes the document at ID.
+	// Returns ErrNotFound if the ID does not exist.
+	Delete(ctx context.Context, id string) error
+
+	// Exists checks whether a document ID exists.
+	Exists(ctx context.Context, id string) (bool, error)
+
+	// Search performs a search returning atomized results.
+	Search(ctx context.Context, search *lucene.Search) ([]AtomicDocument, error)
 }
