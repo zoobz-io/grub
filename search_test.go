@@ -747,20 +747,206 @@ func (*failingHookProduct) BeforeSave(_ context.Context) error {
 	return errors.New("before save failed")
 }
 
+// failingAfterSaveProduct tests AfterSave hook failure.
+type failingAfterSaveProduct struct {
+	Title string `json:"title" atom:"title"`
+}
+
+func (*failingAfterSaveProduct) AfterSave(_ context.Context) error {
+	return errors.New("after save failed")
+}
+
+// failingAfterLoadProduct tests AfterLoad hook failure.
+type failingAfterLoadProduct struct {
+	Title string `json:"title" atom:"title"`
+}
+
+func (*failingAfterLoadProduct) AfterLoad(_ context.Context) error {
+	return errors.New("after load failed")
+}
+
+// failingBeforeDeleteProduct tests BeforeDelete hook failure.
+type failingBeforeDeleteProduct struct {
+	Title string `json:"title" atom:"title"`
+}
+
+func (*failingBeforeDeleteProduct) BeforeDelete(_ context.Context) error {
+	return errors.New("before delete failed")
+}
+
+// failingAfterDeleteProduct tests AfterDelete hook failure.
+type failingAfterDeleteProduct struct {
+	Title string `json:"title" atom:"title"`
+}
+
+func (*failingAfterDeleteProduct) AfterDelete(_ context.Context) error {
+	return errors.New("after delete failed")
+}
+
 func TestSearch_FailingBeforeSaveHook(t *testing.T) {
 	provider := newMockSearchProvider()
 	search, _ := NewSearch[failingHookProduct](provider, "products")
 	ctx := context.Background()
 
-	doc := &failingHookProduct{Title: "Fail"}
-	err := search.Index(ctx, "fail-1", doc)
-	if err == nil {
-		t.Error("expected BeforeSave error")
-	}
+	t.Run("Index BeforeSave error", func(t *testing.T) {
+		doc := &failingHookProduct{Title: "Fail"}
+		err := search.Index(ctx, "fail-1", doc)
+		if err == nil {
+			t.Error("expected BeforeSave error")
+		}
 
-	// Verify document was not stored
-	if _, ok := provider.docs["products"]["fail-1"]; ok {
-		t.Error("document should not have been stored after BeforeSave failure")
+		// Verify document was not stored
+		if _, ok := provider.docs["products"]["fail-1"]; ok {
+			t.Error("document should not have been stored after BeforeSave failure")
+		}
+	})
+
+	t.Run("IndexBatch BeforeSave error", func(t *testing.T) {
+		docs := map[string]*failingHookProduct{
+			"batch-fail": {Title: "Batch Fail"},
+		}
+		err := search.IndexBatch(ctx, docs)
+		if err == nil {
+			t.Error("expected BeforeSave error in batch")
+		}
+	})
+}
+
+func TestSearch_FailingAfterSaveHook(t *testing.T) {
+	provider := newMockSearchProvider()
+	search, _ := NewSearch[failingAfterSaveProduct](provider, "products")
+	ctx := context.Background()
+
+	t.Run("Index AfterSave error", func(t *testing.T) {
+		doc := &failingAfterSaveProduct{Title: "Fail"}
+		err := search.Index(ctx, "fail-after", doc)
+		if err == nil {
+			t.Error("expected AfterSave error")
+		}
+	})
+
+	t.Run("IndexBatch AfterSave error", func(t *testing.T) {
+		docs := map[string]*failingAfterSaveProduct{
+			"batch-1": {Title: "Batch Fail"},
+		}
+		err := search.IndexBatch(ctx, docs)
+		if err == nil {
+			t.Error("expected AfterSave error in batch")
+		}
+	})
+}
+
+func TestSearch_FailingAfterLoadHook(t *testing.T) {
+	provider := newMockSearchProvider()
+	search, _ := NewSearch[failingAfterLoadProduct](provider, "products")
+	ctx := context.Background()
+
+	t.Run("Get AfterLoad error", func(t *testing.T) {
+		provider.ensureIndex("products")
+		provider.docs["products"]["load-fail"] = []byte(`{"title":"Load Fail"}`)
+
+		_, err := search.Get(ctx, "load-fail")
+		if err == nil {
+			t.Error("expected AfterLoad error")
+		}
+	})
+
+	t.Run("Execute AfterLoad error", func(t *testing.T) {
+		provider.searchResp = &SearchResponse{
+			Hits: []SearchHit{
+				{ID: "exec-fail", Source: []byte(`{"title":"Execute Fail"}`), Score: 1.0},
+			},
+			Total: 1,
+		}
+		defer func() { provider.searchResp = nil }()
+
+		s := lucene.NewSearch()
+		_, err := search.Execute(ctx, s)
+		if err == nil {
+			t.Error("expected AfterLoad error in Execute")
+		}
+	})
+}
+
+func TestSearch_FailingBeforeDeleteHook(t *testing.T) {
+	provider := newMockSearchProvider()
+	search, _ := NewSearch[failingBeforeDeleteProduct](provider, "products")
+	ctx := context.Background()
+
+	provider.ensureIndex("products")
+	provider.docs["products"]["del-1"] = []byte(`{}`)
+
+	t.Run("Delete BeforeDelete error", func(t *testing.T) {
+		err := search.Delete(ctx, "del-1")
+		if err == nil {
+			t.Error("expected BeforeDelete error")
+		}
+		// Document should still exist
+		if _, ok := provider.docs["products"]["del-1"]; !ok {
+			t.Error("document should not have been deleted after BeforeDelete failure")
+		}
+	})
+
+	t.Run("DeleteBatch BeforeDelete error", func(t *testing.T) {
+		err := search.DeleteBatch(ctx, []string{"del-1"})
+		if err == nil {
+			t.Error("expected BeforeDelete error in batch")
+		}
+	})
+}
+
+func TestSearch_FailingAfterDeleteHook(t *testing.T) {
+	provider := newMockSearchProvider()
+	search, _ := NewSearch[failingAfterDeleteProduct](provider, "products")
+	ctx := context.Background()
+
+	t.Run("Delete AfterDelete error", func(t *testing.T) {
+		provider.ensureIndex("products")
+		provider.docs["products"]["del-after-1"] = []byte(`{}`)
+
+		err := search.Delete(ctx, "del-after-1")
+		if err == nil {
+			t.Error("expected AfterDelete error")
+		}
+	})
+
+	t.Run("DeleteBatch AfterDelete error", func(t *testing.T) {
+		provider.ensureIndex("products")
+		provider.docs["products"]["del-after-2"] = []byte(`{}`)
+
+		err := search.DeleteBatch(ctx, []string{"del-after-2"})
+		if err == nil {
+			t.Error("expected AfterDelete error in batch")
+		}
+	})
+}
+
+func TestSearch_DeleteBatch_ProviderError(t *testing.T) {
+	provider := newMockSearchProvider()
+	search, _ := NewSearch[testProduct](provider, "products")
+	ctx := context.Background()
+
+	provider.deleteErr = errors.New("batch delete error")
+	defer func() { provider.deleteErr = nil }()
+
+	err := search.DeleteBatch(ctx, []string{"d1", "d2"})
+	if err == nil {
+		t.Error("expected provider error")
+	}
+}
+
+func TestSearch_Count_QueryError(t *testing.T) {
+	provider := newMockSearchProvider()
+	search, _ := NewSearch[testProduct](provider, "products")
+	ctx := context.Background()
+
+	// Create a query with an error
+	q := search.Query()
+	invalidQuery := q.Match("nonexistent_field", "value")
+
+	_, err := search.Count(ctx, invalidQuery)
+	if err == nil {
+		t.Error("expected query error for invalid field")
 	}
 }
 
