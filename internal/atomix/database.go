@@ -1,5 +1,5 @@
-// Package atomic provides atom-based storage wrappers for grub.
-package atomic
+// Package atomix provides atom-based storage wrappers for grub.
+package atomix
 
 import (
 	"context"

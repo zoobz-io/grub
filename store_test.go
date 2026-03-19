@@ -9,12 +9,13 @@ import (
 
 // mockStoreProvider implements StoreProvider for testing.
 type mockStoreProvider struct {
-	data      map[string][]byte
-	getErr    error
-	setErr    error
-	deleteErr error
-	existsErr error
-	listErr   error
+	data        map[string][]byte
+	getErr      error
+	setErr      error
+	deleteErr   error
+	existsErr   error
+	listErr     error
+	getBatchErr error
 }
 
 func newMockStoreProvider() *mockStoreProvider {
@@ -78,6 +79,9 @@ func (m *mockStoreProvider) List(_ context.Context, prefix string, limit int) ([
 }
 
 func (m *mockStoreProvider) GetBatch(_ context.Context, keys []string) (map[string][]byte, error) {
+	if m.getBatchErr != nil {
+		return nil, m.getBatchErr
+	}
 	result := make(map[string][]byte)
 	for _, k := range keys {
 		if v, ok := m.data[k]; ok {
@@ -386,6 +390,16 @@ func TestStore_GetBatch(t *testing.T) {
 		_, err := s.GetBatch(ctx, []string{"batch1"})
 		if err == nil {
 			t.Error("expected decode error")
+		}
+	})
+
+	t.Run("provider error", func(t *testing.T) {
+		provider.getBatchErr = errors.New("batch get error")
+		defer func() { provider.getBatchErr = nil }()
+
+		_, err := store.GetBatch(ctx, []string{"batch1"})
+		if err == nil {
+			t.Error("expected provider error")
 		}
 	})
 }

@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/zoobzio/atom"
-	atomic "github.com/zoobzio/grub/internal/atomic"
+	"github.com/zoobzio/grub/internal/atomix"
 	"github.com/zoobzio/vecna"
 )
 
@@ -15,7 +15,7 @@ import (
 type Index[T any] struct {
 	provider   VectorProvider
 	codec      Codec
-	atomic     *atomic.Index[T]
+	atomic     *atomix.Index[T]
 	atomicOnce sync.Once
 }
 
@@ -228,16 +228,16 @@ func (i *Index[T]) Exists(ctx context.Context, id uuid.UUID) (bool, error) {
 }
 
 // Atomic returns an atom-based view of this index.
-// The returned atomic.Index satisfies the AtomicIndex interface.
+// The returned atomix.Index satisfies the AtomicIndex interface.
 // The instance is created once and cached for subsequent calls.
 // Panics if T is not atomizable (a programmer error).
-func (i *Index[T]) Atomic() *atomic.Index[T] {
+func (i *Index[T]) Atomic() *atomix.Index[T] {
 	i.atomicOnce.Do(func() {
 		atomizer, err := atom.Use[T]()
 		if err != nil {
 			panic("grub: invalid type for atomization: " + err.Error())
 		}
-		i.atomic = atomic.NewIndex[T](i.provider, i.codec, atomizer.Spec())
+		i.atomic = atomix.NewIndex[T](i.provider, i.codec, atomizer.Spec())
 	})
 	return i.atomic
 }
