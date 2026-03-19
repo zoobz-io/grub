@@ -73,7 +73,7 @@ changelog:
 
 release:
   github:
-    owner: zoobzio
+    owner: zoobz-io
     name: grub
 
   name_template: "{{ .ProjectName }} v{{ .Version }}"
@@ -89,7 +89,7 @@ release:
     ### Installation
 
     ```bash
-    go get github.com/zoobzio/grub@v{{ .Version }}
+    go get github.com/zoobz-io/grub@v{{ .Version }}
     ```
 
     ### Requirements
@@ -98,7 +98,7 @@ release:
   footer: |
     ---
 
-    **Full Documentation:** https://github.com/zoobzio/grub/tree/v{{ .Version }}
+    **Full Documentation:** https://github.com/zoobz-io/grub/tree/v{{ .Version }}
 
     Thanks to all contributors!
 
