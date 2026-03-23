@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	astqlsqlite "github.com/zoobzio/astql/sqlite"
-	"github.com/zoobzio/edamame"
-	"github.com/zoobzio/grub/internal/mockdb"
-	"github.com/zoobzio/sentinel"
+	astqlsqlite "github.com/zoobz-io/astql/sqlite"
+	"github.com/zoobz-io/edamame"
+	"github.com/zoobz-io/grub/internal/mockdb"
+	"github.com/zoobz-io/sentinel"
 )
 
 func init() {

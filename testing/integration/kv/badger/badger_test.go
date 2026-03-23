@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/dgraph-io/badger/v4"
-	grubbadger "github.com/zoobzio/grub/badger"
-	"github.com/zoobzio/grub/testing/integration/kv"
+	grubbadger "github.com/zoobz-io/grub/badger"
+	"github.com/zoobz-io/grub/testing/integration/kv"
 )
 
 var tc *kv.TestContext

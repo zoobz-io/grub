@@ -12,8 +12,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/localstack"
-	grubs3 "github.com/zoobzio/grub/s3"
-	"github.com/zoobzio/grub/testing/integration/bucket"
+	grubs3 "github.com/zoobz-io/grub/s3"
+	"github.com/zoobz-io/grub/testing/integration/bucket"
 )
 
 var tc *bucket.TestContext

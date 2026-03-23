@@ -1,6 +1,6 @@
-module github.com/zoobzio/grub/testing
+module github.com/zoobz-io/grub/testing
 
-go 1.24.4
+go 1.25.0
 
 require (
 	cloud.google.com/go/storage v1.58.0
@@ -20,7 +20,7 @@ require (
 	github.com/pinecone-io/go-pinecone/v2 v2.2.0
 	github.com/qdrant/go-client v1.12.0
 	github.com/redis/go-redis/v9 v9.17.2
-	github.com/testcontainers/testcontainers-go v0.40.0
+	github.com/testcontainers/testcontainers-go v0.41.0
 	github.com/testcontainers/testcontainers-go/modules/localstack v0.40.0
 	github.com/testcontainers/testcontainers-go/modules/mariadb v0.40.0
 	github.com/testcontainers/testcontainers-go/modules/milvus v0.40.0
@@ -33,23 +33,23 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/weaviate v0.40.0
 	github.com/weaviate/weaviate v1.29.0
 	github.com/weaviate/weaviate-go-client/v5 v5.0.2
-	github.com/zoobzio/astql v1.0.5
-	github.com/zoobzio/atom v1.0.0
-	github.com/zoobzio/edamame v1.0.1
-	github.com/zoobzio/grub v0.0.0
-	github.com/zoobzio/grub/azure v0.0.0
-	github.com/zoobzio/grub/badger v0.0.0
-	github.com/zoobzio/grub/bolt v0.0.0
-	github.com/zoobzio/grub/gcs v0.0.0
-	github.com/zoobzio/grub/milvus v0.0.0
-	github.com/zoobzio/grub/minio v0.0.0
-	github.com/zoobzio/grub/pinecone v0.0.0
-	github.com/zoobzio/grub/qdrant v0.0.0
-	github.com/zoobzio/grub/redis v0.0.0
-	github.com/zoobzio/grub/s3 v0.0.0
-	github.com/zoobzio/grub/weaviate v0.0.0
-	github.com/zoobzio/sentinel v1.0.2
-	github.com/zoobzio/vecna v0.0.2
+	github.com/zoobz-io/astql v1.0.7
+	github.com/zoobz-io/atom v1.0.1
+	github.com/zoobz-io/edamame v1.0.2
+	github.com/zoobz-io/grub v0.0.0
+	github.com/zoobz-io/grub/azure v0.0.0
+	github.com/zoobz-io/grub/badger v0.0.0
+	github.com/zoobz-io/grub/bolt v0.0.0
+	github.com/zoobz-io/grub/gcs v0.0.0
+	github.com/zoobz-io/grub/milvus v0.0.0
+	github.com/zoobz-io/grub/minio v0.0.0
+	github.com/zoobz-io/grub/pinecone v0.0.0
+	github.com/zoobz-io/grub/qdrant v0.0.0
+	github.com/zoobz-io/grub/redis v0.0.0
+	github.com/zoobz-io/grub/s3 v0.0.0
+	github.com/zoobz-io/grub/weaviate v0.0.0
+	github.com/zoobz-io/sentinel v1.0.4
+	github.com/zoobz-io/vecna v0.0.3
 	go.etcd.io/bbolt v1.4.3
 	google.golang.org/api v0.258.0
 	google.golang.org/grpc v1.78.0
@@ -104,11 +104,11 @@ require (
 	github.com/dgraph-io/ristretto/v2 v2.2.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/docker v28.5.1+incompatible // indirect
+	github.com/docker/docker v28.5.2+incompatible // indirect
 	github.com/docker/go-connections v0.6.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/ebitengine/purego v0.9.0 // indirect
+	github.com/ebitengine/purego v0.10.0 // indirect
 	github.com/envoyproxy/go-control-plane/envoy v1.35.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.2.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
@@ -142,7 +142,7 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgx/v5 v5.6.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
-	github.com/klauspost/compress v1.18.0 // indirect
+	github.com/klauspost/compress v1.18.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
@@ -156,7 +156,7 @@ require (
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
-	github.com/moby/go-archive v0.1.0 // indirect
+	github.com/moby/go-archive v0.2.0 // indirect
 	github.com/moby/patternmatcher v0.6.0 // indirect
 	github.com/moby/sys/sequential v0.6.0 // indirect
 	github.com/moby/sys/user v0.4.0 // indirect
@@ -176,37 +176,38 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
-	github.com/shirou/gopsutil/v4 v4.25.9 // indirect
+	github.com/shirou/gopsutil/v4 v4.26.2 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.6.0 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/tidwall/gjson v1.17.1 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
-	github.com/tklauser/go-sysconf v0.3.15 // indirect
-	github.com/tklauser/numcpus v0.10.0 // indirect
+	github.com/tklauser/go-sysconf v0.3.16 // indirect
+	github.com/tklauser/numcpus v0.11.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	github.com/zoobzio/capitan v1.0.0 // indirect
-	github.com/zoobzio/dbml v1.0.0 // indirect
-	github.com/zoobzio/soy v1.0.3 // indirect
+	github.com/zoobz-io/capitan v1.0.2 // indirect
+	github.com/zoobz-io/dbml v1.0.1 // indirect
+	github.com/zoobz-io/lucene v0.0.2 // indirect
+	github.com/zoobz-io/soy v1.0.6 // indirect
 	go.mongodb.org/mongo-driver v1.14.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.38.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.63.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0 // indirect
-	go.opentelemetry.io/otel v1.38.0 // indirect
-	go.opentelemetry.io/otel/metric v1.38.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.38.0 // indirect
-	go.opentelemetry.io/otel/sdk/metric v1.38.0 // indirect
-	go.opentelemetry.io/otel/trace v1.38.0 // indirect
-	golang.org/x/crypto v0.46.0 // indirect
+	go.opentelemetry.io/otel v1.42.0 // indirect
+	go.opentelemetry.io/otel/metric v1.42.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.42.0 // indirect
+	go.opentelemetry.io/otel/sdk/metric v1.42.0 // indirect
+	go.opentelemetry.io/otel/trace v1.42.0 // indirect
+	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b // indirect
-	golang.org/x/mod v0.30.0 // indirect
-	golang.org/x/net v0.48.0 // indirect
+	golang.org/x/mod v0.32.0 // indirect
+	golang.org/x/net v0.50.0 // indirect
 	golang.org/x/oauth2 v0.34.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.39.0 // indirect
-	golang.org/x/text v0.32.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	google.golang.org/genproto v0.0.0-20250922171735-9219d122eba9 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20251222181119-0a764e51fe1b // indirect
@@ -220,20 +221,20 @@ require (
 )
 
 replace (
-	github.com/zoobzio/grub v0.0.0 => ../
-	github.com/zoobzio/grub/azure v0.0.0 => ../azure
-	github.com/zoobzio/grub/badger v0.0.0 => ../badger
-	github.com/zoobzio/grub/bolt v0.0.0 => ../bolt
-	github.com/zoobzio/grub/gcs v0.0.0 => ../gcs
-	github.com/zoobzio/grub/mariadb v0.0.0 => ../mariadb
-	github.com/zoobzio/grub/milvus v0.0.0 => ../milvus
-	github.com/zoobzio/grub/minio v0.0.0 => ../minio
-	github.com/zoobzio/grub/mssql v0.0.0 => ../mssql
-	github.com/zoobzio/grub/pinecone v0.0.0 => ../pinecone
-	github.com/zoobzio/grub/postgres v0.0.0 => ../postgres
-	github.com/zoobzio/grub/qdrant v0.0.0 => ../qdrant
-	github.com/zoobzio/grub/redis v0.0.0 => ../redis
-	github.com/zoobzio/grub/s3 v0.0.0 => ../s3
-	github.com/zoobzio/grub/sqlite v0.0.0 => ../sqlite
-	github.com/zoobzio/grub/weaviate v0.0.0 => ../weaviate
+	github.com/zoobz-io/grub v0.0.0 => ../
+	github.com/zoobz-io/grub/azure v0.0.0 => ../azure
+	github.com/zoobz-io/grub/badger v0.0.0 => ../badger
+	github.com/zoobz-io/grub/bolt v0.0.0 => ../bolt
+	github.com/zoobz-io/grub/gcs v0.0.0 => ../gcs
+	github.com/zoobz-io/grub/mariadb v0.0.0 => ../mariadb
+	github.com/zoobz-io/grub/milvus v0.0.0 => ../milvus
+	github.com/zoobz-io/grub/minio v0.0.0 => ../minio
+	github.com/zoobz-io/grub/mssql v0.0.0 => ../mssql
+	github.com/zoobz-io/grub/pinecone v0.0.0 => ../pinecone
+	github.com/zoobz-io/grub/postgres v0.0.0 => ../postgres
+	github.com/zoobz-io/grub/qdrant v0.0.0 => ../qdrant
+	github.com/zoobz-io/grub/redis v0.0.0 => ../redis
+	github.com/zoobz-io/grub/s3 v0.0.0 => ../s3
+	github.com/zoobz-io/grub/sqlite v0.0.0 => ../sqlite
+	github.com/zoobz-io/grub/weaviate v0.0.0 => ../weaviate
 )

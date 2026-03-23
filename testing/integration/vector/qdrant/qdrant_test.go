@@ -12,8 +12,8 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	tcqdrant "github.com/testcontainers/testcontainers-go/modules/qdrant"
 	"github.com/testcontainers/testcontainers-go/wait"
-	grubqdrant "github.com/zoobzio/grub/qdrant"
-	"github.com/zoobzio/grub/testing/integration/vector"
+	grubqdrant "github.com/zoobz-io/grub/qdrant"
+	"github.com/zoobz-io/grub/testing/integration/vector"
 )
 
 var tc *vector.TestContext

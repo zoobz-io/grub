@@ -60,7 +60,7 @@ Integration tests use testcontainers to spin up real instances of backing servic
 ### Using Helpers
 
 ```go
-import grubtesting "github.com/zoobzio/grub/testing"
+import grubtesting "github.com/zoobz-io/grub/testing"
 
 func TestSomething(t *testing.T) {
     ctx := grubtesting.WithTimeout(t, 5*time.Second)
@@ -88,7 +88,7 @@ Domain-specific test logic lives in the shared test suites (`integration/kv/shar
 Integration tests use shared suites from `integration/kv/` and `integration/bucket/`:
 
 ```go
-import "github.com/zoobzio/grub/testing/integration/kv"
+import "github.com/zoobz-io/grub/testing/integration/kv"
 
 func TestRedis(t *testing.T) {
     // Setup provider...

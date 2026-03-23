@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	"github.com/zoobzio/grub"
+	"github.com/zoobz-io/grub"
 )
 
 // Provider implements grub.StoreProvider for Redis.

@@ -11,8 +11,8 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	tcpinecone "github.com/testcontainers/testcontainers-go/modules/pinecone"
 	"github.com/testcontainers/testcontainers-go/wait"
-	grubpinecone "github.com/zoobzio/grub/pinecone"
-	"github.com/zoobzio/grub/testing/integration/vector"
+	grubpinecone "github.com/zoobz-io/grub/pinecone"
+	"github.com/zoobz-io/grub/testing/integration/vector"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

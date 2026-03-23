@@ -12,8 +12,8 @@ import (
 	"github.com/weaviate/weaviate-go-client/v5/weaviate"
 	"github.com/weaviate/weaviate-go-client/v5/weaviate/grpc"
 	"github.com/weaviate/weaviate/entities/models"
-	grubweaviate "github.com/zoobzio/grub/weaviate"
-	"github.com/zoobzio/grub/testing/integration/vector"
+	grubweaviate "github.com/zoobz-io/grub/weaviate"
+	"github.com/zoobz-io/grub/testing/integration/vector"
 )
 
 var tc *vector.TestContext

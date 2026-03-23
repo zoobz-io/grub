@@ -13,8 +13,8 @@ import (
 	"github.com/weaviate/weaviate-go-client/v5/weaviate/filters"
 	"github.com/weaviate/weaviate-go-client/v5/weaviate/graphql"
 	"github.com/weaviate/weaviate/entities/models"
-	"github.com/zoobzio/grub"
-	"github.com/zoobzio/vecna"
+	"github.com/zoobz-io/grub"
+	"github.com/zoobz-io/vecna"
 )
 
 // isNotFoundError checks if the error indicates a not found condition.

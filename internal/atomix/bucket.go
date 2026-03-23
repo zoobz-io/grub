@@ -3,8 +3,8 @@ package atomix
 import (
 	"context"
 
-	"github.com/zoobzio/atom"
-	"github.com/zoobzio/grub/internal/shared"
+	"github.com/zoobz-io/atom"
+	"github.com/zoobz-io/grub/internal/shared"
 )
 
 // BucketProvider defines raw blob storage operations.

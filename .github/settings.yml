@@ -1,7 +1,7 @@
 repository:
   name: grub
   description: Provider-agnostic storage for Go
-  homepage: https://github.com/zoobzio/grub
+  homepage: https://grub.zoobz.io
   has_wiki: true
   has_downloads: true
   default_branch: main
@@ -9,6 +9,7 @@ repository:
   allow_merge_commit: false
   allow_rebase_merge: false
   delete_branch_on_merge: true
+  topics: go, golang, zoobzio, storage, database, kv, blob, vector
 
 branches:
   - name: main

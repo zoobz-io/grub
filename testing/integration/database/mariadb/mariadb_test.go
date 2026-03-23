@@ -11,8 +11,8 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/mariadb"
 	"github.com/testcontainers/testcontainers-go/wait"
-	astqlmariadb "github.com/zoobzio/astql/mariadb"
-	"github.com/zoobzio/grub/testing/integration/database"
+	astqlmariadb "github.com/zoobz-io/astql/mariadb"
+	"github.com/zoobz-io/grub/testing/integration/database"
 )
 
 var tc *database.TestContext

@@ -7,11 +7,11 @@ import (
 	"sync"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/zoobzio/astql"
-	"github.com/zoobzio/atom"
-	"github.com/zoobzio/edamame"
-	"github.com/zoobzio/grub/internal/atomix"
-	"github.com/zoobzio/soy"
+	"github.com/zoobz-io/astql"
+	"github.com/zoobz-io/atom"
+	"github.com/zoobz-io/edamame"
+	"github.com/zoobz-io/grub/internal/atomix"
+	"github.com/zoobz-io/soy"
 )
 
 // Default statements for common operations.

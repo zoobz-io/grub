@@ -12,9 +12,9 @@ import (
 
 	"github.com/opensearch-project/opensearch-go/v4"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
-	"github.com/zoobzio/grub"
-	"github.com/zoobzio/lucene"
-	osrenderer "github.com/zoobzio/lucene/opensearch"
+	"github.com/zoobz-io/grub"
+	"github.com/zoobz-io/lucene"
+	osrenderer "github.com/zoobz-io/lucene/opensearch"
 )
 
 // Config holds configuration for the OpenSearch provider.

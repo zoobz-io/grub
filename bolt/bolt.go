@@ -5,7 +5,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/zoobzio/grub"
+	"github.com/zoobz-io/grub"
 	"go.etcd.io/bbolt"
 )
 

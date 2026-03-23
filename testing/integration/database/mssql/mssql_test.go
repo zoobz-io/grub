@@ -11,8 +11,8 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/mssql"
 	"github.com/testcontainers/testcontainers-go/wait"
-	astqlmssql "github.com/zoobzio/astql/mssql"
-	"github.com/zoobzio/grub/testing/integration/database"
+	astqlmssql "github.com/zoobz-io/astql/mssql"
+	"github.com/zoobz-io/grub/testing/integration/database"
 )
 
 var tc *database.TestContext

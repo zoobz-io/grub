@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/zoobzio/grub"
-	"github.com/zoobzio/vecna"
+	"github.com/zoobz-io/grub"
+	"github.com/zoobz-io/vecna"
 )
 
 type testMeta struct {

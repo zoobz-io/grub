@@ -6,9 +6,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/zoobzio/atom"
-	"github.com/zoobzio/grub/internal/shared"
-	"github.com/zoobzio/lucene"
+	"github.com/zoobz-io/atom"
+	"github.com/zoobz-io/grub/internal/shared"
+	"github.com/zoobz-io/lucene"
 )
 
 // mockSearchProvider implements SearchProvider for testing.

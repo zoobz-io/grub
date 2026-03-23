@@ -10,8 +10,8 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	tcredis "github.com/testcontainers/testcontainers-go/modules/redis"
 	"github.com/testcontainers/testcontainers-go/wait"
-	grubredis "github.com/zoobzio/grub/redis"
-	"github.com/zoobzio/grub/testing/integration/kv"
+	grubredis "github.com/zoobz-io/grub/redis"
+	"github.com/zoobz-io/grub/testing/integration/kv"
 )
 
 var tc *kv.TestContext

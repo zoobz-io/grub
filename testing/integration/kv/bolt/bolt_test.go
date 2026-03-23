@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	grubbolt "github.com/zoobzio/grub/bolt"
-	"github.com/zoobzio/grub/testing/integration/kv"
+	grubbolt "github.com/zoobz-io/grub/bolt"
+	"github.com/zoobz-io/grub/testing/integration/kv"
 	"go.etcd.io/bbolt"
 )
 

@@ -11,7 +11,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"github.com/zoobzio/grub"
+	"github.com/zoobz-io/grub"
 )
 
 var testProvider *Provider

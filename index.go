@@ -5,9 +5,9 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/zoobzio/atom"
-	"github.com/zoobzio/grub/internal/atomix"
-	"github.com/zoobzio/vecna"
+	"github.com/zoobz-io/atom"
+	"github.com/zoobz-io/grub/internal/atomix"
+	"github.com/zoobz-io/vecna"
 )
 
 // Index provides type-safe vector storage operations with metadata of type T.

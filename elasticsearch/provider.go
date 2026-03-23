@@ -12,9 +12,9 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
-	"github.com/zoobzio/grub"
-	"github.com/zoobzio/lucene"
-	esrenderer "github.com/zoobzio/lucene/elasticsearch"
+	"github.com/zoobz-io/grub"
+	"github.com/zoobz-io/lucene"
+	esrenderer "github.com/zoobz-io/lucene/elasticsearch"
 )
 
 // Config holds configuration for the Elasticsearch provider.

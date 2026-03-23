@@ -5,121 +5,94 @@ on:
     tags:
       - 'v*.*.*'
 
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: false
-
 permissions:
   contents: write
-  packages: write
-  id-token: write
 
 jobs:
   validate:
-    name: Validate Module
+    name: Validate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.25'
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25'
 
-      - name: Validate go.mod
-        run: |
-          go mod tidy
-          git diff --exit-code go.mod go.sum || (echo "go.mod/go.sum need updating" && exit 1)
+    - name: Run tests
+      run: make test
 
-      - name: Setup Go workspace
-        run: |
-          go work init .
-          go work use ./azure ./badger ./bolt ./gcs ./mariadb ./mssql
-          go work use ./postgres ./redis ./s3 ./sqlite ./testing
+    - name: Run linter
+      run: |
+        go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.7.2
+        make lint
 
-      - name: Run tests
-        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+    - name: Verify go.mod is tidy
+      run: |
+        go mod tidy
+        git diff --exit-code go.mod go.sum
 
-      - name: Run linting
-        uses: golangci/golangci-lint-action@v7
-
-  tag-submodules:
-    name: Tag Submodules
+  release:
+    name: Release
     needs: validate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-      - name: Tag submodules
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          for mod in azure badger bolt gcs mariadb mssql postgres redis s3 sqlite testing; do
-            git tag "${mod}/${VERSION}"
-          done
-          git push origin --tags
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25'
 
-  release:
-    name: Create Release
-    needs: tag-submodules
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - name: Run GoReleaser
+      uses: goreleaser/goreleaser-action@v6
+      with:
+        distribution: goreleaser
+        version: latest
+        args: release --clean
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.25'
-
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          version: latest
-          args: release --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
-
-      - name: Upload Release Assets
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-artifacts
-          path: .dist/
-          retention-days: 7
-
-  verify:
-    name: Verify Release
+  tag-submodules:
+    name: Tag Submodules
     needs: release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.25'
+    - name: Tag submodules
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/}
+        for mod in azure badger bolt elasticsearch gcs mariadb milvus minio mssql opensearch pinecone postgres qdrant redis s3 sqlite weaviate testing; do
+          if git ls-remote --exit-code --tags origin "refs/tags/${mod}/${VERSION}" >/dev/null 2>&1; then
+            echo "Tag ${mod}/${VERSION} already exists, skipping"
+          else
+            git tag "${mod}/${VERSION}"
+            git push origin "${mod}/${VERSION}"
+            echo "Created tag ${mod}/${VERSION}"
+          fi
+        done
 
-      - name: Get release tag
-        id: get_tag
-        run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+  verify:
+    name: Verify
+    needs: [release, tag-submodules]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25'
 
-      - name: Verify module can be fetched
-        run: |
-          sleep 30  # Wait for module proxy to update
-          cd $(mktemp -d)
-          go mod init test
-          go get github.com/zoobzio/grub@${{ steps.get_tag.outputs.TAG }}
-
-      - name: Release summary
-        run: |
-          echo "### Release ${{ steps.get_tag.outputs.TAG }} Complete!" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Installation:**" >> $GITHUB_STEP_SUMMARY
-          echo '```bash' >> $GITHUB_STEP_SUMMARY
-          echo "go get github.com/zoobzio/grub@${{ steps.get_tag.outputs.TAG }}" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+    - name: Verify module
+      run: |
+        sleep 60
+        TAG=${GITHUB_REF#refs/tags/}
+        go install github.com/zoobz-io/grub@$TAG || echo "Module verification pending proxy sync"
+      continue-on-error: true

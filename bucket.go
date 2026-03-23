@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/zoobzio/atom"
-	"github.com/zoobzio/grub/internal/atomix"
+	"github.com/zoobz-io/atom"
+	"github.com/zoobz-io/grub/internal/atomix"
 )
 
 // Bucket provides type-safe blob storage operations for T.

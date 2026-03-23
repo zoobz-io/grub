@@ -6,10 +6,10 @@ import (
 	"errors"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/zoobzio/atom"
-	"github.com/zoobzio/edamame"
-	"github.com/zoobzio/grub/internal/shared"
-	"github.com/zoobzio/soy"
+	"github.com/zoobz-io/atom"
+	"github.com/zoobz-io/edamame"
+	"github.com/zoobz-io/grub/internal/shared"
+	"github.com/zoobz-io/soy"
 )
 
 // Database provides atom-based storage operations.

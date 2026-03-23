@@ -1,7 +1,7 @@
 // Package shared contains canonical type definitions shared across grub.
 package shared //nolint:revive // internal shared package is intentional
 
-import "github.com/zoobzio/atom"
+import "github.com/zoobz-io/atom"
 
 // SearchHit represents a single search result from a provider.
 type SearchHit struct {

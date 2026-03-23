@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/zoobzio/atom"
+	"github.com/zoobz-io/atom"
 )
 
 // StoreProvider defines raw key-value storage operations.

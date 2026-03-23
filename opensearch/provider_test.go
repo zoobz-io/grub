@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/opensearch-project/opensearch-go/v4"
-	"github.com/zoobzio/grub"
-	"github.com/zoobzio/lucene"
-	osrenderer "github.com/zoobzio/lucene/opensearch"
+	"github.com/zoobz-io/grub"
+	"github.com/zoobz-io/lucene"
+	osrenderer "github.com/zoobz-io/lucene/opensearch"
 )
 
 // mockResponse creates a mock HTTP response body

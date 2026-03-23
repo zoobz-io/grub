@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
-	"github.com/zoobzio/grub"
+	"github.com/zoobz-io/grub"
 )
 
 // Provider implements grub.StoreProvider for BadgerDB.

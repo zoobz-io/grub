@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zoobzio/atom"
-	"github.com/zoobzio/grub/internal/atomix"
+	"github.com/zoobz-io/atom"
+	"github.com/zoobz-io/grub/internal/atomix"
 )
 
 // Store provides type-safe key-value storage operations for T.
