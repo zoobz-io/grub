@@ -6,8 +6,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/zoobzio/atom"
-	"github.com/zoobzio/grub/internal/shared"
+	"github.com/zoobz-io/atom"
+	"github.com/zoobz-io/grub/internal/shared"
 )
 
 // mockBucketProvider implements BucketProvider for testing.

@@ -11,8 +11,8 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	tcmilvus "github.com/testcontainers/testcontainers-go/modules/milvus"
 	"github.com/testcontainers/testcontainers-go/wait"
-	grubmilvus "github.com/zoobzio/grub/milvus"
-	"github.com/zoobzio/grub/testing/integration/vector"
+	grubmilvus "github.com/zoobz-io/grub/milvus"
+	"github.com/zoobz-io/grub/testing/integration/vector"
 )
 
 var tc *vector.TestContext

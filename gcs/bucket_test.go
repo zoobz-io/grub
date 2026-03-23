@@ -10,7 +10,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"github.com/zoobzio/grub"
+	"github.com/zoobz-io/grub"
 	"google.golang.org/api/option"
 )
 

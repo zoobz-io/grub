@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/pinecone-io/go-pinecone/v2/pinecone"
-	"github.com/zoobzio/grub"
-	"github.com/zoobzio/vecna"
+	"github.com/zoobz-io/grub"
+	"github.com/zoobz-io/vecna"
 )
 
 // translateFilter converts a vecna.Filter to a Pinecone metadata filter.

@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/zoobzio/grub"
-	"github.com/zoobzio/sentinel"
-	"github.com/zoobzio/vecna"
+	"github.com/zoobz-io/grub"
+	"github.com/zoobz-io/sentinel"
+	"github.com/zoobz-io/vecna"
 )
 
 // testID generates a unique UUID for a test to avoid conflicts.

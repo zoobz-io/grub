@@ -1,4 +1,4 @@
-module github.com/zoobzio/grub/mariadb
+module github.com/zoobz-io/grub/mariadb
 
 go 1.24.0
 

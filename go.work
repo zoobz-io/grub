@@ -1,0 +1,45 @@
+go 1.25.5
+
+use (
+	.
+	./azure
+	./badger
+	./bolt
+	./elasticsearch
+	./gcs
+	./mariadb
+	./milvus
+	./minio
+	./mssql
+	./opensearch
+	./pinecone
+	./postgres
+	./qdrant
+	./redis
+	./s3
+	./sqlite
+	./testing
+	./weaviate
+)
+
+replace (
+	github.com/zoobz-io/grub v0.0.0 => .
+	github.com/zoobz-io/grub/azure v0.0.0 => ./azure
+	github.com/zoobz-io/grub/badger v0.0.0 => ./badger
+	github.com/zoobz-io/grub/bolt v0.0.0 => ./bolt
+	github.com/zoobz-io/grub/elasticsearch v0.0.0 => ./elasticsearch
+	github.com/zoobz-io/grub/gcs v0.0.0 => ./gcs
+	github.com/zoobz-io/grub/mariadb v0.0.0 => ./mariadb
+	github.com/zoobz-io/grub/milvus v0.0.0 => ./milvus
+	github.com/zoobz-io/grub/minio v0.0.0 => ./minio
+	github.com/zoobz-io/grub/mssql v0.0.0 => ./mssql
+	github.com/zoobz-io/grub/opensearch v0.0.0 => ./opensearch
+	github.com/zoobz-io/grub/pinecone v0.0.0 => ./pinecone
+	github.com/zoobz-io/grub/postgres v0.0.0 => ./postgres
+	github.com/zoobz-io/grub/qdrant v0.0.0 => ./qdrant
+	github.com/zoobz-io/grub/redis v0.0.0 => ./redis
+	github.com/zoobz-io/grub/s3 v0.0.0 => ./s3
+	github.com/zoobz-io/grub/sqlite v0.0.0 => ./sqlite
+	github.com/zoobz-io/grub/testing v0.0.0 => ./testing
+	github.com/zoobz-io/grub/weaviate v0.0.0 => ./weaviate
+)

@@ -1,13 +1,13 @@
 # grub
 
-[![CI](https://github.com/zoobzio/grub/actions/workflows/ci.yml/badge.svg)](https://github.com/zoobzio/grub/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/zoobzio/grub/graph/badge.svg?branch=main)](https://codecov.io/gh/zoobzio/grub)
-[![Go Report Card](https://goreportcard.com/badge/github.com/zoobzio/grub)](https://goreportcard.com/report/github.com/zoobzio/grub)
-[![CodeQL](https://github.com/zoobzio/grub/actions/workflows/codeql.yml/badge.svg)](https://github.com/zoobzio/grub/actions/workflows/codeql.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/zoobzio/grub.svg)](https://pkg.go.dev/github.com/zoobzio/grub)
-[![License](https://img.shields.io/github/license/zoobzio/grub)](LICENSE)
-[![Go Version](https://img.shields.io/github/go-mod/go-version/zoobzio/grub)](go.mod)
-[![Release](https://img.shields.io/github/v/release/zoobzio/grub)](https://github.com/zoobzio/grub/releases)
+[![CI](https://github.com/zoobz-io/grub/actions/workflows/ci.yml/badge.svg)](https://github.com/zoobz-io/grub/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/zoobz-io/grub/graph/badge.svg?branch=main)](https://codecov.io/gh/zoobz-io/grub)
+[![Go Report Card](https://goreportcard.com/badge/github.com/zoobz-io/grub)](https://goreportcard.com/report/github.com/zoobz-io/grub)
+[![CodeQL](https://github.com/zoobz-io/grub/actions/workflows/codeql.yml/badge.svg)](https://github.com/zoobz-io/grub/actions/workflows/codeql.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/zoobz-io/grub.svg)](https://pkg.go.dev/github.com/zoobz-io/grub)
+[![License](https://img.shields.io/github/license/zoobz-io/grub)](LICENSE)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/zoobz-io/grub)](go.mod)
+[![Release](https://img.shields.io/github/v/release/zoobz-io/grub)](https://github.com/zoobz-io/grub/releases)
 
 Provider-agnostic storage for Go.
 
@@ -41,7 +41,7 @@ Four storage modes, consistent API, semantic errors across all providers.
 ## Install
 
 ```bash
-go get github.com/zoobzio/grub
+go get github.com/zoobz-io/grub
 ```
 
 Requires Go 1.24+.
@@ -56,8 +56,8 @@ import (
     "fmt"
     "time"
 
-    "github.com/zoobzio/grub"
-    "github.com/zoobzio/grub/redis"
+    "github.com/zoobz-io/grub"
+    "github.com/zoobz-io/grub/redis"
     goredis "github.com/redis/go-redis/v9"
 )
 

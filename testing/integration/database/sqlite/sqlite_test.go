@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/jmoiron/sqlx"
-	astqlsqlite "github.com/zoobzio/astql/sqlite"
-	"github.com/zoobzio/grub/testing/integration/database"
+	astqlsqlite "github.com/zoobz-io/astql/sqlite"
+	"github.com/zoobz-io/grub/testing/integration/database"
 	_ "modernc.org/sqlite"
 )
 

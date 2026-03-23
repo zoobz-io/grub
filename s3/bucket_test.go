@@ -14,7 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"github.com/zoobzio/grub"
+	"github.com/zoobz-io/grub"
 )
 
 var testProvider *Provider

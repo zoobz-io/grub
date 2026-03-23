@@ -11,8 +11,8 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-	astqlpg "github.com/zoobzio/astql/postgres"
-	"github.com/zoobzio/grub/testing/integration/database"
+	astqlpg "github.com/zoobz-io/astql/postgres"
+	"github.com/zoobz-io/grub/testing/integration/database"
 )
 
 var tc *database.TestContext

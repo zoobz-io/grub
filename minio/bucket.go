@@ -7,7 +7,7 @@ import (
 	"io"
 
 	"github.com/minio/minio-go/v7"
-	"github.com/zoobzio/grub"
+	"github.com/zoobz-io/grub"
 )
 
 // Provider implements grub.BucketProvider for MinIO.

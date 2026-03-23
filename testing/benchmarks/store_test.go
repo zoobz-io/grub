@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zoobzio/grub"
-	"github.com/zoobzio/sentinel"
+	"github.com/zoobz-io/grub"
+	"github.com/zoobz-io/sentinel"
 )
 
 func init() {

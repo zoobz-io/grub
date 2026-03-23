@@ -1,6 +1,6 @@
 package grub
 
-import "github.com/zoobzio/grub/internal/shared"
+import "github.com/zoobz-io/grub/internal/shared"
 
 // ObjectInfo is re-exported from internal/shared for the public API.
 type ObjectInfo = shared.ObjectInfo

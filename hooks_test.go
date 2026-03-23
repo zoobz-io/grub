@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	astqlsqlite "github.com/zoobzio/astql/sqlite"
-	"github.com/zoobzio/grub/internal/mockdb"
+	astqlsqlite "github.com/zoobz-io/astql/sqlite"
+	"github.com/zoobz-io/grub/internal/mockdb"
 )
 
 var errHook = errors.New("hook error")

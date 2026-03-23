@@ -11,7 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/bloberror"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
-	"github.com/zoobzio/grub"
+	"github.com/zoobz-io/grub"
 )
 
 // Provider implements grub.BucketProvider for Azure Blob Storage.

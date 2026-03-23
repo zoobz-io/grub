@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/zoobzio/atom"
-	"github.com/zoobzio/grub/internal/shared"
-	"github.com/zoobzio/vecna"
+	"github.com/zoobz-io/atom"
+	"github.com/zoobz-io/grub/internal/shared"
+	"github.com/zoobz-io/vecna"
 )
 
 // mockVectorProvider implements VectorProvider for testing.

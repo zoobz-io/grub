@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/zoobzio/grub/internal/shared"
+	"github.com/zoobz-io/grub/internal/shared"
 )
 
 func TestErrorsReexported(t *testing.T) {

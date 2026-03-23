@@ -1,7 +1,7 @@
 // Package shared provides canonical type definitions used across grub modules.
 package shared //nolint:revive // internal shared package is intentional
 
-import "github.com/zoobzio/atom"
+import "github.com/zoobz-io/atom"
 
 // ObjectInfo holds provider-level metadata for blob storage.
 // Used by BucketProvider implementations.

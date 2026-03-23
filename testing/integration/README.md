@@ -50,7 +50,7 @@ Each storage type provides shared test suites that verify consistent behavior ac
 ### Key-Value (`kv/shared.go`)
 
 ```go
-import "github.com/zoobzio/grub/testing/integration/kv"
+import "github.com/zoobz-io/grub/testing/integration/kv"
 
 func TestMyProvider(t *testing.T) {
     provider := setupProvider()
@@ -66,7 +66,7 @@ func TestMyProvider(t *testing.T) {
 ### Bucket (`bucket/shared.go`)
 
 ```go
-import "github.com/zoobzio/grub/testing/integration/bucket"
+import "github.com/zoobz-io/grub/testing/integration/bucket"
 
 func TestMyBucket(t *testing.T) {
     provider := setupProvider()
@@ -81,7 +81,7 @@ func TestMyBucket(t *testing.T) {
 ### Database (`database/shared.go`)
 
 ```go
-import "github.com/zoobzio/grub/testing/integration/database"
+import "github.com/zoobz-io/grub/testing/integration/database"
 
 func TestMyDatabase(t *testing.T) {
     db := setupDatabase()

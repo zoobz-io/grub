@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/zoobzio/atom"
-	"github.com/zoobzio/edamame"
-	"github.com/zoobzio/grub/internal/shared"
-	"github.com/zoobzio/lucene"
-	"github.com/zoobzio/vecna"
+	"github.com/zoobz-io/atom"
+	"github.com/zoobz-io/edamame"
+	"github.com/zoobz-io/grub/internal/shared"
+	"github.com/zoobz-io/lucene"
+	"github.com/zoobz-io/vecna"
 )
 
 // Semantic errors for storage operations (re-exported from internal/shared).

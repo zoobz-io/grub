@@ -9,8 +9,8 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	grubgcs "github.com/zoobzio/grub/gcs"
-	"github.com/zoobzio/grub/testing/integration/bucket"
+	grubgcs "github.com/zoobz-io/grub/gcs"
+	"github.com/zoobz-io/grub/testing/integration/bucket"
 	"google.golang.org/api/option"
 )
 

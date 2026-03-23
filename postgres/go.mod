@@ -1,4 +1,4 @@
-module github.com/zoobzio/grub/postgres
+module github.com/zoobz-io/grub/postgres
 
 go 1.24.0
 

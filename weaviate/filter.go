@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/weaviate/weaviate-go-client/v5/weaviate/filters"
-	"github.com/zoobzio/grub"
-	"github.com/zoobzio/vecna"
+	"github.com/zoobz-io/grub"
+	"github.com/zoobz-io/vecna"
 )
 
 // translateFilter converts a vecna.Filter to a Weaviate WhereBuilder.

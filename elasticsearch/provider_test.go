@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/zoobzio/grub"
-	"github.com/zoobzio/lucene"
-	esrenderer "github.com/zoobzio/lucene/elasticsearch"
+	"github.com/zoobz-io/grub"
+	"github.com/zoobz-io/lucene"
+	esrenderer "github.com/zoobz-io/lucene/elasticsearch"
 )
 
 // setupMockServer creates a test server with configurable responses.

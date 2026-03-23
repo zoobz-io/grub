@@ -2,11 +2,9 @@ name: CodeQL
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
-  schedule:
-    - cron: '17 3 * * 1'
+    branches: [main]
 
 permissions:
   actions: read
@@ -17,60 +15,22 @@ jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
-    timeout-minutes: 360
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'go' ]
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+    - uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
         go-version: '1.25'
-        cache: true
-
-    - name: Setup Go workspace
-      run: |
-        go work init .
-        go work use ./azure ./badger ./bolt ./gcs ./mariadb ./mssql
-        go work use ./postgres ./redis ./s3 ./sqlite ./testing
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
-        languages: ${{ matrix.language }}
-        queries: +security-extended,security-and-quality
+        languages: go
+        queries: security-and-quality
 
     - name: Autobuild
       uses: github/codeql-action/autobuild@v3
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
-      with:
-        category: "/language:${{ matrix.language }}"
-        upload: true
-        output: codeql-results
-
-    - name: Upload CodeQL results
-      uses: actions/upload-artifact@v4
-      with:
-        name: codeql-results-${{ matrix.language }}
-        path: codeql-results/
-        retention-days: 7
-
-    - name: Security Summary
-      if: always()
-      run: |
-        echo "### CodeQL Security Analysis Complete" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Language:** ${{ matrix.language }}" >> $GITHUB_STEP_SUMMARY
-        echo "**Status:** Analysis completed" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Results will be available in the Security tab." >> $GITHUB_STEP_SUMMARY

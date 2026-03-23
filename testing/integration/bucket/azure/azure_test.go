@@ -10,8 +10,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	grubazure "github.com/zoobzio/grub/azure"
-	"github.com/zoobzio/grub/testing/integration/bucket"
+	grubazure "github.com/zoobz-io/grub/azure"
+	"github.com/zoobz-io/grub/testing/integration/bucket"
 )
 
 var tc *bucket.TestContext

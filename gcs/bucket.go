@@ -7,7 +7,7 @@ import (
 	"io"
 
 	"cloud.google.com/go/storage"
-	"github.com/zoobzio/grub"
+	"github.com/zoobz-io/grub"
 	"google.golang.org/api/iterator"
 )
 

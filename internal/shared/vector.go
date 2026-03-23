@@ -3,7 +3,7 @@ package shared //nolint:revive // internal shared package is intentional
 
 import (
 	"github.com/google/uuid"
-	"github.com/zoobzio/atom"
+	"github.com/zoobz-io/atom"
 )
 
 // VectorInfo holds provider-level metadata for vector storage.

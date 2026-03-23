@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/zoobzio/astql"
-	"github.com/zoobzio/atom"
-	"github.com/zoobzio/edamame"
-	"github.com/zoobzio/grub"
-	"github.com/zoobzio/sentinel"
+	"github.com/zoobz-io/astql"
+	"github.com/zoobz-io/atom"
+	"github.com/zoobz-io/edamame"
+	"github.com/zoobz-io/grub"
+	"github.com/zoobz-io/sentinel"
 )
 
 func init() {

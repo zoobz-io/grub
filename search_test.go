@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/zoobzio/lucene"
+	"github.com/zoobz-io/lucene"
 )
 
 // mockSearchProvider implements SearchProvider for testing.

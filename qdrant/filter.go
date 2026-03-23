@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/qdrant/go-client/qdrant"
-	"github.com/zoobzio/grub"
-	"github.com/zoobzio/vecna"
+	"github.com/zoobz-io/grub"
+	"github.com/zoobz-io/vecna"
 )
 
 // translateFilter converts a vecna.Filter to a qdrant.Filter.

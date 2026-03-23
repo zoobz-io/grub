@@ -8,8 +8,8 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	minioc "github.com/testcontainers/testcontainers-go/modules/minio"
-	grubminio "github.com/zoobzio/grub/minio"
-	"github.com/zoobzio/grub/testing/integration/bucket"
+	grubminio "github.com/zoobz-io/grub/minio"
+	"github.com/zoobz-io/grub/testing/integration/bucket"
 )
 
 var tc *bucket.TestContext

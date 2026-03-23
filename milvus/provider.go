@@ -9,8 +9,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/milvus-io/milvus-sdk-go/v2/client"
 	"github.com/milvus-io/milvus-sdk-go/v2/entity"
-	"github.com/zoobzio/grub"
-	"github.com/zoobzio/vecna"
+	"github.com/zoobz-io/grub"
+	"github.com/zoobz-io/vecna"
 )
 
 // maxOffsetPlusLimit is the Milvus constraint: offset + limit must be < 16384.
