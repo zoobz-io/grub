@@ -3,7 +3,7 @@ module github.com/zoobz-io/grub/opensearch
 go 1.24.0
 
 require (
-	github.com/opensearch-project/opensearch-go/v4 v4.3.0
+	github.com/opensearch-project/opensearch-go/v4 v4.6.0
 	github.com/zoobz-io/grub v0.0.0
 	github.com/zoobz-io/lucene v0.0.2
 )

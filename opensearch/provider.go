@@ -316,10 +316,15 @@ func (p *Provider) Refresh(ctx context.Context, index string) error {
 
 // parseSearchResponse converts OpenSearch response to grub.SearchResponse.
 func (p *Provider) parseSearchResponse(resp *opensearchapi.SearchResp) (*grub.SearchResponse, error) {
+	var maxScore float64
+	if resp.Hits.MaxScore != nil {
+		maxScore = float64(*resp.Hits.MaxScore)
+	}
+
 	result := &grub.SearchResponse{
 		Hits:     make([]grub.SearchHit, 0, len(resp.Hits.Hits)),
 		Total:    int64(resp.Hits.Total.Value),
-		MaxScore: float64(resp.Hits.MaxScore),
+		MaxScore: maxScore,
 	}
 
 	for _, hit := range resp.Hits.Hits {
