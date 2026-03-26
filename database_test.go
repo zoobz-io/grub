@@ -1539,6 +1539,87 @@ func TestDatabaseFromProvider_Set_WithGobCodec(t *testing.T) {
 	}
 }
 
+// errBeforeSaveUser implements BeforeSave that always errors.
+type errBeforeSaveUser struct {
+	ID   int    `db:"id" constraints:"primarykey"`
+	Name string `db:"name"`
+}
+
+func (*errBeforeSaveUser) BeforeSave(_ context.Context) error {
+	return errors.New("before save error")
+}
+
+// errAfterSaveUser implements AfterSave that always errors.
+type errAfterSaveUser struct {
+	ID   int    `db:"id" constraints:"primarykey"`
+	Name string `db:"name"`
+}
+
+func (*errAfterSaveUser) AfterSave(_ context.Context) error {
+	return errors.New("after save error")
+}
+
+func TestDatabaseFromProvider_Set_BeforeSaveError(t *testing.T) {
+	provider := newMockDatabaseProvider()
+	ctx := context.Background()
+
+	db := NewDatabaseFromProvider[errBeforeSaveUser](provider, "test_users")
+
+	err := db.Set(ctx, "1", &errBeforeSaveUser{ID: 1, Name: "Test"})
+	if err == nil {
+		t.Error("expected BeforeSave error")
+	}
+	if !strings.Contains(err.Error(), "before save error") {
+		t.Errorf("expected before save error, got: %v", err)
+	}
+}
+
+func TestDatabaseFromProvider_Set_AfterSaveError(t *testing.T) {
+	provider := newMockDatabaseProvider()
+	ctx := context.Background()
+
+	db := NewDatabaseFromProvider[errAfterSaveUser](provider, "test_users")
+
+	err := db.Set(ctx, "1", &errAfterSaveUser{ID: 1, Name: "Test"})
+	if err == nil {
+		t.Error("expected AfterSave error")
+	}
+	if !strings.Contains(err.Error(), "after save error") {
+		t.Errorf("expected after save error, got: %v", err)
+	}
+}
+
+// badCodec always fails encoding.
+type badCodec struct{}
+
+func (badCodec) Encode(_ any) ([]byte, error) { return nil, errors.New("encode error") }
+func (badCodec) Decode(_ []byte, _ any) error { return errors.New("decode error") }
+
+func TestDatabaseFromProvider_Set_EncodeError(t *testing.T) {
+	provider := newMockDatabaseProvider()
+	ctx := context.Background()
+
+	db := NewDatabaseFromProviderWithCodec[TestDBUser](provider, "test_users", badCodec{})
+
+	err := db.Set(ctx, "1", &TestDBUser{ID: 1, Name: "Test"})
+	if err == nil {
+		t.Error("expected encode error")
+	}
+}
+
+func TestDatabaseFromProvider_Get_CodecDecodeError(t *testing.T) {
+	provider := newMockDatabaseProvider()
+	ctx := context.Background()
+	provider.data["1"] = []byte(`{"id":1}`)
+
+	db := NewDatabaseFromProviderWithCodec[TestDBUser](provider, "test_users", badCodec{})
+
+	_, err := db.Get(ctx, "1")
+	if err == nil {
+		t.Error("expected decode error")
+	}
+}
+
 func TestDatabaseFromProvider_ExecQuery_DecodeError(t *testing.T) {
 	provider := newMockDatabaseProvider()
 	ctx := context.Background()
@@ -2035,6 +2116,155 @@ func TestDatabaseProvider_Exists_QueryError(t *testing.T) {
 	_, err = provider.Exists(ctx, "123")
 	if err == nil {
 		t.Error("expected error")
+	}
+}
+
+// --- Concrete Provider Tests with Row Data ---
+
+func TestDatabaseProvider_Get_WithData(t *testing.T) {
+	mockDB, _, cfg := mockdb.NewWithConfig()
+	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
+	if err != nil {
+		t.Fatalf("NewDatabaseProvider failed: %v", err)
+	}
+	ctx := context.Background()
+
+	cfg.SetRowData(&mockdb.RowData{
+		Columns: []string{"id", "email", "name", "age"},
+		Rows:    [][]any{{int64(1), "test@example.com", "Test User", int64(30)}},
+	})
+	defer cfg.Reset()
+
+	data, err := provider.Get(ctx, "1")
+	if err != nil {
+		t.Fatalf("Get failed: %v", err)
+	}
+	if data == nil {
+		t.Fatal("expected non-nil data")
+	}
+
+	// Verify we can decode the returned bytes
+	var user TestDBUser
+	codec := JSONCodec{}
+	if err := codec.Decode(data, &user); err != nil {
+		t.Fatalf("decode failed: %v", err)
+	}
+	if user.ID != 1 {
+		t.Errorf("ID mismatch: got %d", user.ID)
+	}
+	if user.Email != "test@example.com" {
+		t.Errorf("Email mismatch: got %q", user.Email)
+	}
+}
+
+func TestDatabaseProvider_ExecQuery_WithData(t *testing.T) {
+	mockDB, _, cfg := mockdb.NewWithConfig()
+	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
+	if err != nil {
+		t.Fatalf("NewDatabaseProvider failed: %v", err)
+	}
+	ctx := context.Background()
+
+	cfg.SetRowData(&mockdb.RowData{
+		Columns: []string{"id", "email", "name", "age"},
+		Rows: [][]any{
+			{int64(1), "a@b.com", "Alice", int64(25)},
+			{int64(2), "c@d.com", "Bob", int64(30)},
+		},
+	})
+	defer cfg.Reset()
+
+	results, err := provider.ExecQuery(ctx, QueryAll, nil)
+	if err != nil {
+		t.Fatalf("ExecQuery failed: %v", err)
+	}
+	if len(results) != 2 {
+		t.Fatalf("expected 2 results, got %d", len(results))
+	}
+
+	// Verify each result decodes correctly
+	var user TestDBUser
+	codec := JSONCodec{}
+	if err := codec.Decode(results[0], &user); err != nil {
+		t.Fatalf("decode failed: %v", err)
+	}
+	if user.ID != 1 {
+		t.Errorf("first user ID mismatch: got %d", user.ID)
+	}
+}
+
+func TestDatabaseProvider_ExecSelect_WithData(t *testing.T) {
+	mockDB, _, cfg := mockdb.NewWithConfig()
+	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
+	if err != nil {
+		t.Fatalf("NewDatabaseProvider failed: %v", err)
+	}
+	ctx := context.Background()
+
+	cfg.SetRowData(&mockdb.RowData{
+		Columns: []string{"id", "email", "name", "age"},
+		Rows:    [][]any{{int64(1), "test@example.com", "Test", int64(25)}},
+	})
+	defer cfg.Reset()
+
+	stmt := edamame.NewSelectStatement("by-email", "Find by email", edamame.SelectSpec{
+		Where: []edamame.ConditionSpec{
+			{Field: "email", Operator: "=", Param: "email"},
+		},
+	})
+
+	data, err := provider.ExecSelect(ctx, stmt, map[string]any{"email": "test@example.com"})
+	if err != nil {
+		t.Fatalf("ExecSelect failed: %v", err)
+	}
+	if data == nil {
+		t.Fatal("expected non-nil data")
+	}
+
+	var user TestDBUser
+	codec := JSONCodec{}
+	if err := codec.Decode(data, &user); err != nil {
+		t.Fatalf("decode failed: %v", err)
+	}
+	if user.Email != "test@example.com" {
+		t.Errorf("Email mismatch: got %q", user.Email)
+	}
+}
+
+func TestDatabaseProvider_ExecUpdate_WithData(t *testing.T) {
+	mockDB, _, cfg := mockdb.NewWithConfig()
+	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
+	if err != nil {
+		t.Fatalf("NewDatabaseProvider failed: %v", err)
+	}
+	ctx := context.Background()
+
+	cfg.SetRowData(&mockdb.RowData{
+		Columns: []string{"id", "email", "name", "age"},
+		Rows:    [][]any{{int64(1), "test@example.com", "Updated", int64(25)}},
+	})
+	defer cfg.Reset()
+
+	stmt := edamame.NewUpdateStatement("rename", "Rename user", edamame.UpdateSpec{
+		Set:   map[string]string{"name": "new_name"},
+		Where: []edamame.ConditionSpec{{Field: "id", Operator: "=", Param: "id"}},
+	})
+
+	data, err := provider.ExecUpdate(ctx, stmt, map[string]any{"id": 1, "new_name": "Updated"})
+	if err != nil {
+		t.Fatalf("ExecUpdate failed: %v", err)
+	}
+	if data == nil {
+		t.Fatal("expected non-nil data")
+	}
+
+	var user TestDBUser
+	codec := JSONCodec{}
+	if err := codec.Decode(data, &user); err != nil {
+		t.Fatalf("decode failed: %v", err)
+	}
+	if user.Name != "Updated" {
+		t.Errorf("Name mismatch: got %q", user.Name)
 	}
 }
 

@@ -24,10 +24,11 @@ func init() {
 // Config holds configurable behavior for the mock database.
 type Config struct {
 	mu              sync.Mutex
-	QueryErr        error // Error to return from QueryContext
-	ExecErr         error // Error to return from ExecContext
-	RowsAffected    int64 // Value to return from RowsAffected (default 1)
-	rowsAffectedSet bool  // Whether RowsAffected was explicitly set
+	QueryErr        error    // Error to return from QueryContext
+	ExecErr         error    // Error to return from ExecContext
+	RowsAffected    int64    // Value to return from RowsAffected (default 1)
+	rowsAffectedSet bool     // Whether RowsAffected was explicitly set
+	rowData         *RowData // Configurable row data for queries
 }
 
 // SetQueryErr sets the error to return from queries.
@@ -42,6 +43,25 @@ func (c *Config) SetExecErr(err error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.ExecErr = err
+}
+
+// RowData holds configurable column and row data for query results.
+type RowData struct {
+	Columns []string
+	Rows    [][]any
+}
+
+// SetRowData configures rows to return from queries.
+func (c *Config) SetRowData(data *RowData) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.rowData = data
+}
+
+func (c *Config) getRowData() *RowData {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.rowData
 }
 
 // SetRowsAffected sets the rows affected value to return.
@@ -60,6 +80,7 @@ func (c *Config) Reset() {
 	c.ExecErr = nil
 	c.RowsAffected = 0
 	c.rowsAffectedSet = false
+	c.rowData = nil
 }
 
 func (c *Config) getQueryErr() error {
@@ -159,6 +180,9 @@ func (c *Conn) QueryContext(_ context.Context, query string, args []driver.Named
 	if err := c.config.getQueryErr(); err != nil {
 		return nil, err
 	}
+	if data := c.config.getRowData(); data != nil {
+		return &DataRows{columns: data.Columns, rows: data.Rows}, nil
+	}
 	return &Rows{}, nil
 }
 
@@ -227,7 +251,7 @@ func (r *Result) RowsAffected() (int64, error) {
 	return r.rowsAffected, nil
 }
 
-// Rows is a mock rows result.
+// Rows is a mock rows result that returns no data.
 type Rows struct {
 	closed bool
 }
@@ -246,6 +270,40 @@ func (r *Rows) Close() error {
 // Next always returns io.EOF (no rows).
 func (*Rows) Next(_ []driver.Value) error {
 	return io.EOF
+}
+
+// DataRows is a mock rows result that returns configurable data.
+type DataRows struct {
+	columns []string
+	rows    [][]any
+	index   int
+	closed  bool
+}
+
+// Columns returns the configured column names.
+func (r *DataRows) Columns() []string {
+	return r.columns
+}
+
+// Close marks rows as closed.
+func (r *DataRows) Close() error {
+	r.closed = true
+	return nil
+}
+
+// Next copies the next row into dest, or returns io.EOF when exhausted.
+func (r *DataRows) Next(dest []driver.Value) error {
+	if r.index >= len(r.rows) {
+		return io.EOF
+	}
+	row := r.rows[r.index]
+	r.index++
+	for i, v := range row {
+		if i < len(dest) {
+			dest[i] = v
+		}
+	}
+	return nil
 }
 
 // New creates a new mock database connection and returns the sqlx.DB and the capture.
