@@ -121,6 +121,37 @@ type AtomicDatabase interface {
 	ExecSelect(ctx context.Context, stmt edamame.SelectStatement, params map[string]any) (*atom.Atom, error)
 }
 
+// DatabaseProvider defines raw SQL storage operations.
+// Implementations satisfy this interface to provide a mockable database backend.
+// Use NewDatabaseProvider to create a provider backed by a sqlx.DB connection.
+type DatabaseProvider interface {
+	// Get retrieves the record at key.
+	// Returns ErrNotFound if the key does not exist.
+	Get(ctx context.Context, key string) ([]byte, error)
+
+	// Set stores value at key (insert or update).
+	Set(ctx context.Context, key string, value []byte) error
+
+	// Delete removes the record at key.
+	// Returns ErrNotFound if the key does not exist.
+	Delete(ctx context.Context, key string) error
+
+	// Exists checks whether a record exists at key.
+	Exists(ctx context.Context, key string) (bool, error)
+
+	// ExecQuery executes a named query and returns multiple records as raw bytes.
+	ExecQuery(ctx context.Context, stmt edamame.QueryStatement, params map[string]any) ([][]byte, error)
+
+	// ExecSelect executes a named select and returns a single record as raw bytes.
+	ExecSelect(ctx context.Context, stmt edamame.SelectStatement, params map[string]any) ([]byte, error)
+
+	// ExecUpdate executes a named update and returns the affected record as raw bytes.
+	ExecUpdate(ctx context.Context, stmt edamame.UpdateStatement, params map[string]any) ([]byte, error)
+
+	// ExecAggregate executes an aggregate and returns a scalar.
+	ExecAggregate(ctx context.Context, stmt edamame.AggregateStatement, params map[string]any) (float64, error)
+}
+
 // BucketProvider defines raw blob storage operations.
 // Implementations (s3, gcs, azure) satisfy this interface.
 type BucketProvider interface {
