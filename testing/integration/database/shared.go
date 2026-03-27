@@ -225,7 +225,7 @@ func testHookBeforeSaveError(t *testing.T, tc *TestContext) {
 	db := grub.NewDatabase[FailingBeforeSaveUser](tc.DB, "test_users", tc.Renderer)
 
 	user := &FailingBeforeSaveUser{ID: 1, Email: "fail@example.com", Name: "Fail"}
-	err = db.Set(ctx, "1", user)
+	err := db.Set(ctx, "1", user)
 	if !errors.Is(err, errTestHook) {
 		t.Fatalf("expected hook error, got: %v", err)
 	}
@@ -306,7 +306,7 @@ func testSet(t *testing.T, tc *TestContext) {
 		Name:  "Set User",
 		Age:   intPtr(35),
 	}
-	err = db.Set(ctx, "1", user)
+	err := db.Set(ctx, "1", user)
 	if err != nil {
 		t.Fatalf("Set failed: %v", err)
 	}
@@ -341,7 +341,7 @@ func testSetUpdate(t *testing.T, tc *TestContext) {
 		Name:  "New Name",
 		Age:   intPtr(40),
 	}
-	err = db.Set(ctx, "1", updated)
+	err := db.Set(ctx, "1", updated)
 	if err != nil {
 		t.Fatalf("Set (update) failed: %v", err)
 	}
@@ -376,7 +376,7 @@ func testSetAtom(t *testing.T, tc *TestContext) {
 	age := int64(50)
 	a.IntPtrs["Age"] = &age
 
-	err = db.Atomic().Set(ctx, "1", a)
+	err := db.Atomic().Set(ctx, "1", a)
 	if err != nil {
 		t.Fatalf("Atomic().Set failed: %v", err)
 	}
@@ -425,7 +425,7 @@ func testDeleteNotFound(t *testing.T, tc *TestContext) {
 
 	db := grub.NewDatabase[TestUser](tc.DB, "test_users", tc.Renderer)
 
-	err = db.Delete(ctx, "999")
+	err := db.Delete(ctx, "999")
 	if !errors.Is(err, grub.ErrNotFound) {
 		t.Errorf("expected ErrNotFound, got %v", err)
 	}
