@@ -146,11 +146,8 @@ type testProduct struct {
 
 func TestNewSearch(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, err := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 
-	if err != nil {
-		t.Fatalf("NewSearch failed: %v", err)
-	}
 	if search == nil {
 		t.Fatal("NewSearch returned nil")
 	}
@@ -171,11 +168,8 @@ func TestNewSearch(t *testing.T) {
 func TestNewSearchWithCodec(t *testing.T) {
 	provider := newMockSearchProvider()
 	codec := GobCodec{}
-	search, err := NewSearchWithCodec[testProduct](provider, "products", codec)
+	search := NewSearchWithCodec[testProduct](provider, "products", codec)
 
-	if err != nil {
-		t.Fatalf("NewSearchWithCodec failed: %v", err)
-	}
 	if search == nil {
 		t.Fatal("NewSearchWithCodec returned nil")
 	}
@@ -183,7 +177,7 @@ func TestNewSearchWithCodec(t *testing.T) {
 
 func TestSearch_Index(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	t.Run("basic index", func(t *testing.T) {
@@ -211,7 +205,7 @@ func TestSearch_Index(t *testing.T) {
 
 	t.Run("encode error", func(t *testing.T) {
 		codec := &failingCodec{encodeErr: errors.New("encode failed")}
-		s, _ := NewSearchWithCodec[testProduct](provider, "products", codec)
+		s := NewSearchWithCodec[testProduct](provider, "products", codec)
 
 		doc := &testProduct{Title: "Encode Fail"}
 		err := s.Index(ctx, "enc-fail", doc)
@@ -223,7 +217,7 @@ func TestSearch_Index(t *testing.T) {
 
 func TestSearch_IndexBatch(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	t.Run("basic batch", func(t *testing.T) {
@@ -256,7 +250,7 @@ func TestSearch_IndexBatch(t *testing.T) {
 
 	t.Run("encode error", func(t *testing.T) {
 		codec := &failingCodec{encodeErr: errors.New("encode failed")}
-		s, _ := NewSearchWithCodec[testProduct](provider, "products", codec)
+		s := NewSearchWithCodec[testProduct](provider, "products", codec)
 
 		docs := map[string]*testProduct{
 			"fail": {Title: "Encode Fail"},
@@ -270,7 +264,7 @@ func TestSearch_IndexBatch(t *testing.T) {
 
 func TestSearch_Get(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	t.Run("existing id", func(t *testing.T) {
@@ -322,7 +316,7 @@ func TestSearch_Get(t *testing.T) {
 
 func TestSearch_Delete(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	t.Run("existing id", func(t *testing.T) {
@@ -349,7 +343,7 @@ func TestSearch_Delete(t *testing.T) {
 
 func TestSearch_DeleteBatch(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	provider.ensureIndex("products")
@@ -375,7 +369,7 @@ func TestSearch_DeleteBatch(t *testing.T) {
 
 func TestSearch_Exists(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	provider.ensureIndex("products")
@@ -404,7 +398,7 @@ func TestSearch_Exists(t *testing.T) {
 
 func TestSearch_Query(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 
 	builder := search.Query()
 	if builder == nil {
@@ -423,7 +417,7 @@ func TestSearch_Query(t *testing.T) {
 
 func TestSearch_Execute(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	t.Run("basic search", func(t *testing.T) {
@@ -534,7 +528,7 @@ func TestSearch_Execute(t *testing.T) {
 
 func TestSearch_Count(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	t.Run("count all", func(t *testing.T) {
@@ -579,7 +573,7 @@ func TestSearch_Count(t *testing.T) {
 
 func TestSearch_Refresh(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	t.Run("success", func(t *testing.T) {
@@ -602,7 +596,7 @@ func TestSearch_Refresh(t *testing.T) {
 
 func TestSearch_RoundTrip(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	original := &testProduct{
@@ -633,7 +627,7 @@ func TestSearch_RoundTrip(t *testing.T) {
 
 func TestSearch_Atomic(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	provider.ensureIndex("products")
@@ -685,7 +679,7 @@ func (h *hookedProduct) AfterLoad(_ context.Context) error {
 
 func TestSearch_Hooks(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[hookedProduct](provider, "products")
+	search := NewSearch[hookedProduct](provider, "products")
 	ctx := context.Background()
 
 	t.Run("Index calls hooks", func(t *testing.T) {
@@ -785,7 +779,7 @@ func (*failingAfterDeleteProduct) AfterDelete(_ context.Context) error {
 
 func TestSearch_FailingBeforeSaveHook(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[failingHookProduct](provider, "products")
+	search := NewSearch[failingHookProduct](provider, "products")
 	ctx := context.Background()
 
 	t.Run("Index BeforeSave error", func(t *testing.T) {
@@ -814,7 +808,7 @@ func TestSearch_FailingBeforeSaveHook(t *testing.T) {
 
 func TestSearch_FailingAfterSaveHook(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[failingAfterSaveProduct](provider, "products")
+	search := NewSearch[failingAfterSaveProduct](provider, "products")
 	ctx := context.Background()
 
 	t.Run("Index AfterSave error", func(t *testing.T) {
@@ -838,7 +832,7 @@ func TestSearch_FailingAfterSaveHook(t *testing.T) {
 
 func TestSearch_FailingAfterLoadHook(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[failingAfterLoadProduct](provider, "products")
+	search := NewSearch[failingAfterLoadProduct](provider, "products")
 	ctx := context.Background()
 
 	t.Run("Get AfterLoad error", func(t *testing.T) {
@@ -870,7 +864,7 @@ func TestSearch_FailingAfterLoadHook(t *testing.T) {
 
 func TestSearch_FailingBeforeDeleteHook(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[failingBeforeDeleteProduct](provider, "products")
+	search := NewSearch[failingBeforeDeleteProduct](provider, "products")
 	ctx := context.Background()
 
 	provider.ensureIndex("products")
@@ -897,7 +891,7 @@ func TestSearch_FailingBeforeDeleteHook(t *testing.T) {
 
 func TestSearch_FailingAfterDeleteHook(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[failingAfterDeleteProduct](provider, "products")
+	search := NewSearch[failingAfterDeleteProduct](provider, "products")
 	ctx := context.Background()
 
 	t.Run("Delete AfterDelete error", func(t *testing.T) {
@@ -923,7 +917,7 @@ func TestSearch_FailingAfterDeleteHook(t *testing.T) {
 
 func TestSearch_DeleteBatch_ProviderError(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	provider.deleteErr = errors.New("batch delete error")
@@ -937,7 +931,7 @@ func TestSearch_DeleteBatch_ProviderError(t *testing.T) {
 
 func TestSearch_Count_QueryError(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	// Create a query with an error
@@ -953,7 +947,7 @@ func TestSearch_Count_QueryError(t *testing.T) {
 // TestSearch_ExecuteQueryError tests that query errors propagate.
 func TestSearch_ExecuteQueryError(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	// Create a query with an error (invalid field).
@@ -970,7 +964,7 @@ func TestSearch_ExecuteQueryError(t *testing.T) {
 
 func TestSearch_IndexBatchEmpty(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	// Empty batch should succeed
@@ -982,7 +976,7 @@ func TestSearch_IndexBatchEmpty(t *testing.T) {
 
 func TestSearch_DeleteBatchEmpty(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	// Empty batch should succeed
@@ -994,7 +988,7 @@ func TestSearch_DeleteBatchEmpty(t *testing.T) {
 
 func TestSearch_ExecuteNilSearch(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	// Test with minimal search request
@@ -1016,7 +1010,7 @@ func TestSearch_ExecuteNilSearch(t *testing.T) {
 // TestSearch_JSONRoundTrip verifies JSON encoding preserves data.
 func TestSearch_JSONRoundTrip(t *testing.T) {
 	provider := newMockSearchProvider()
-	search, _ := NewSearch[testProduct](provider, "products")
+	search := NewSearch[testProduct](provider, "products")
 	ctx := context.Background()
 
 	original := &testProduct{
@@ -1044,18 +1038,22 @@ func TestSearch_JSONRoundTrip(t *testing.T) {
 	}
 }
 
-func TestNewSearch_BuilderError(t *testing.T) {
+func TestNewSearch_BuilderPanic(t *testing.T) {
 	provider := newMockSearchProvider()
-	_, err := NewSearch[int](provider, "test")
-	if err == nil {
-		t.Error("expected error for non-struct type")
-	}
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("expected panic for non-struct type")
+		}
+	}()
+	NewSearch[int](provider, "test")
 }
 
-func TestNewSearchWithCodec_BuilderError(t *testing.T) {
+func TestNewSearchWithCodec_BuilderPanic(t *testing.T) {
 	provider := newMockSearchProvider()
-	_, err := NewSearchWithCodec[int](provider, "test", JSONCodec{})
-	if err == nil {
-		t.Error("expected error for non-struct type")
-	}
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("expected panic for non-struct type")
+		}
+	}()
+	NewSearchWithCodec[int](provider, "test", JSONCodec{})
 }

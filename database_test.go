@@ -30,10 +30,7 @@ var testDBRenderer = astqlsqlite.New()
 
 func TestNewDatabase(t *testing.T) {
 	mockDB, _ := mockdb.New()
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 	if db == nil {
 		t.Fatal("NewDatabase returned nil")
 	}
@@ -52,10 +49,7 @@ func TestDatabase_Get(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	// Call Get - it will fail to find data but we can check the SQL
 	_, _ = db.Get(ctx, "123")
@@ -81,10 +75,7 @@ func TestDatabase_Set(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	user := &TestDBUser{
 		ID:    1,
@@ -116,10 +107,7 @@ func TestDatabase_Delete(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	_ = db.Delete(ctx, "123")
 
@@ -144,10 +132,7 @@ func TestDatabase_Exists(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	_, _ = db.Exists(ctx, "123")
 
@@ -167,10 +152,7 @@ func TestDatabase_Exists(t *testing.T) {
 
 func TestDatabase_Executor(t *testing.T) {
 	mockDB, _ := mockdb.New()
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	executor := db.Executor()
 	if executor == nil {
@@ -184,10 +166,7 @@ func TestDatabase_QueryBuilder(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	// Use the Query builder directly
 	_, _ = db.Query().
@@ -212,10 +191,7 @@ func TestDatabase_SelectBuilder(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	// Use the Select builder directly
 	_, _ = db.Select().
@@ -239,10 +215,7 @@ func TestDatabase_InsertBuilder(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	user := &TestDBUser{
 		Email: "insert@example.com",
@@ -267,10 +240,7 @@ func TestDatabase_InsertFullBuilder(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	user := &TestDBUser{
 		ID:    1,
@@ -299,10 +269,7 @@ func TestDatabase_ModifyBuilder(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	// Use the Modify builder directly
 	_, _ = db.Modify().
@@ -327,10 +294,7 @@ func TestDatabase_RemoveBuilder(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	// Use the Remove builder directly
 	_, _ = db.Remove().
@@ -354,10 +318,7 @@ func TestDatabase_CountBuilder(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	// Use the Count builder directly
 	_, _ = db.Count().
@@ -381,10 +342,7 @@ func TestDatabase_ExecQuery(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	// Use default QueryAll statement
 	_, _ = db.ExecQuery(ctx, QueryAll, nil)
@@ -406,10 +364,7 @@ func TestDatabase_ExecQueryWithStatement(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	stmt := edamame.NewQueryStatement("by-min-age", "Users with age >= min_age", edamame.QuerySpec{
 		Where: []edamame.ConditionSpec{
@@ -442,10 +397,7 @@ func TestDatabase_ExecSelect(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	stmt := edamame.NewSelectStatement("by-email", "Find user by email", edamame.SelectSpec{
 		Where: []edamame.ConditionSpec{
@@ -472,10 +424,7 @@ func TestDatabase_ExecUpdate(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	stmt := edamame.NewUpdateStatement("rename-by-email", "Update user name by email", edamame.UpdateSpec{
 		Set: map[string]string{
@@ -508,10 +457,7 @@ func TestDatabase_ExecAggregate(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	// Default count aggregate
 	_, _ = db.ExecAggregate(ctx, CountAll, nil)
@@ -530,10 +476,7 @@ func TestDatabase_ExecAggregateSum(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	stmt := edamame.NewAggregateStatement("sum-age", "Sum of all ages", edamame.AggSum, edamame.AggregateSpec{
 		Field: "age",
@@ -557,10 +500,7 @@ func TestDatabase_ExecAggregateSum(t *testing.T) {
 func TestDatabase_Atomic(t *testing.T) {
 	mockDB, _ := mockdb.New()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	atomic := db.Atomic()
 	if atomic == nil {
@@ -582,13 +522,10 @@ func TestDatabase_Get_NotFound(t *testing.T) {
 	mockDB, _ := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	// mockdb returns empty rows, which should result in ErrNotFound
-	_, err = db.Get(ctx, "nonexistent")
+	_, err := db.Get(ctx, "nonexistent")
 	if err == nil {
 		t.Error("expected error for missing key")
 	}
@@ -602,17 +539,14 @@ func TestDatabase_Get_QueryError(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	// Configure mock to return an error
 	queryErr := errors.New("database connection error")
 	cfg.SetQueryErr(queryErr)
 	defer cfg.Reset()
 
-	_, err = db.Get(ctx, "123")
+	_, err := db.Get(ctx, "123")
 	if err == nil {
 		t.Error("expected query error")
 	}
@@ -625,16 +559,13 @@ func TestDatabase_Delete_NotFound(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	// Configure mock to return 0 rows affected (simulates key not found)
 	cfg.SetRowsAffected(0)
 	defer cfg.Reset()
 
-	err = db.Delete(ctx, "nonexistent")
+	err := db.Delete(ctx, "nonexistent")
 	if err == nil {
 		t.Error("expected ErrNotFound for 0 rows affected")
 	}
@@ -647,17 +578,14 @@ func TestDatabase_Delete_ExecError(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	// Configure mock to return an exec error
 	execErr := errors.New("database exec error")
 	cfg.SetExecErr(execErr)
 	defer cfg.Reset()
 
-	err = db.Delete(ctx, "123")
+	err := db.Delete(ctx, "123")
 	if err == nil {
 		t.Error("expected exec error")
 	}
@@ -670,17 +598,14 @@ func TestDatabase_Exists_QueryError(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	// Configure mock to return a query error
 	queryErr := errors.New("exists query error")
 	cfg.SetQueryErr(queryErr)
 	defer cfg.Reset()
 
-	_, err = db.Exists(ctx, "123")
+	_, err := db.Exists(ctx, "123")
 	if err == nil {
 		t.Error("expected query error")
 	}
@@ -695,10 +620,7 @@ func TestDatabase_GetTx(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	tx, err := mockDB.BeginTxx(ctx, nil)
 	if err != nil {
@@ -725,10 +647,7 @@ func TestDatabase_SetTx(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	tx, err := mockDB.BeginTxx(ctx, nil)
 	if err != nil {
@@ -762,10 +681,7 @@ func TestDatabase_DeleteTx(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	tx, err := mockDB.BeginTxx(ctx, nil)
 	if err != nil {
@@ -792,10 +708,7 @@ func TestDatabase_ExistsTx(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	tx, err := mockDB.BeginTxx(ctx, nil)
 	if err != nil {
@@ -822,10 +735,7 @@ func TestDatabase_ExecQueryTx(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	tx, err := mockDB.BeginTxx(ctx, nil)
 	if err != nil {
@@ -852,10 +762,7 @@ func TestDatabase_ExecSelectTx(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	tx, err := mockDB.BeginTxx(ctx, nil)
 	if err != nil {
@@ -888,10 +795,7 @@ func TestDatabase_ExecUpdateTx(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	tx, err := mockDB.BeginTxx(ctx, nil)
 	if err != nil {
@@ -930,10 +834,7 @@ func TestDatabase_ExecAggregateTx(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	tx, err := mockDB.BeginTxx(ctx, nil)
 	if err != nil {
@@ -957,10 +858,7 @@ func TestDatabase_GetTx_NotFound(t *testing.T) {
 	mockDB, _ := mockdb.New()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	tx, err := mockDB.BeginTxx(ctx, nil)
 	if err != nil {
@@ -981,10 +879,7 @@ func TestDatabase_DeleteTx_NotFound(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	tx, err := mockDB.BeginTxx(ctx, nil)
 	if err != nil {
@@ -1008,10 +903,7 @@ func TestDatabase_GetTx_QueryError(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	tx, err := mockDB.BeginTxx(ctx, nil)
 	if err != nil {
@@ -1036,10 +928,7 @@ func TestDatabase_DeleteTx_ExecError(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	tx, err := mockDB.BeginTxx(ctx, nil)
 	if err != nil {
@@ -1064,10 +953,7 @@ func TestDatabase_ExistsTx_QueryError(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
 	ctx := context.Background()
 
-	db, err := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
 
 	tx, err := mockDB.BeginTxx(ctx, nil)
 	if err != nil {
@@ -1117,32 +1003,37 @@ type PKIgnoredDBTag struct {
 
 func TestNewDatabase_NoPrimaryKey(t *testing.T) {
 	mockDB, _ := mockdb.New()
-	_, err := NewDatabase[NoPKUser](mockDB, "test", testDBRenderer)
-	if err == nil {
-		t.Fatal("expected ErrNoPrimaryKey")
-	}
-	if !errors.Is(err, ErrNoPrimaryKey) {
-		t.Errorf("expected ErrNoPrimaryKey, got: %v", err)
-	}
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic for missing primary key")
+		}
+		msg, ok := r.(string)
+		if !ok || !strings.Contains(msg, ErrNoPrimaryKey.Error()) {
+			t.Errorf("expected panic containing %q, got: %v", ErrNoPrimaryKey.Error(), r)
+		}
+	}()
+	NewDatabase[NoPKUser](mockDB, "test", testDBRenderer)
 }
 
 func TestNewDatabase_MultiplePrimaryKeys(t *testing.T) {
 	mockDB, _ := mockdb.New()
-	_, err := NewDatabase[MultiplePKUser](mockDB, "test", testDBRenderer)
-	if err == nil {
-		t.Fatal("expected ErrMultiplePrimaryKeys")
-	}
-	if !errors.Is(err, ErrMultiplePrimaryKeys) {
-		t.Errorf("expected ErrMultiplePrimaryKeys, got: %v", err)
-	}
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic for multiple primary keys")
+		}
+		msg, ok := r.(string)
+		if !ok || !strings.Contains(msg, ErrMultiplePrimaryKeys.Error()) {
+			t.Errorf("expected panic containing %q, got: %v", ErrMultiplePrimaryKeys.Error(), r)
+		}
+	}()
+	NewDatabase[MultiplePKUser](mockDB, "test", testDBRenderer)
 }
 
 func TestNewDatabase_PrimaryKeyInCommaList(t *testing.T) {
 	mockDB, _ := mockdb.New()
-	db, err := NewDatabase[CommaPKUser](mockDB, "test", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	db := NewDatabase[CommaPKUser](mockDB, "test", testDBRenderer)
 	if db.keyCol != "id" {
 		t.Errorf("expected keyCol 'id', got %q", db.keyCol)
 	}
@@ -1150,24 +1041,32 @@ func TestNewDatabase_PrimaryKeyInCommaList(t *testing.T) {
 
 func TestNewDatabase_PrimaryKeyNoDBTag(t *testing.T) {
 	mockDB, _ := mockdb.New()
-	_, err := NewDatabase[PKNoDBTag](mockDB, "test", testDBRenderer)
-	if err == nil {
-		t.Fatal("expected ErrNoPrimaryKey")
-	}
-	if !errors.Is(err, ErrNoPrimaryKey) {
-		t.Errorf("expected ErrNoPrimaryKey, got: %v", err)
-	}
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic for missing primary key")
+		}
+		msg, ok := r.(string)
+		if !ok || !strings.Contains(msg, ErrNoPrimaryKey.Error()) {
+			t.Errorf("expected panic containing %q, got: %v", ErrNoPrimaryKey.Error(), r)
+		}
+	}()
+	NewDatabase[PKNoDBTag](mockDB, "test", testDBRenderer)
 }
 
 func TestNewDatabase_PrimaryKeyIgnoredDBTag(t *testing.T) {
 	mockDB, _ := mockdb.New()
-	_, err := NewDatabase[PKIgnoredDBTag](mockDB, "test", testDBRenderer)
-	if err == nil {
-		t.Fatal("expected ErrNoPrimaryKey")
-	}
-	if !errors.Is(err, ErrNoPrimaryKey) {
-		t.Errorf("expected ErrNoPrimaryKey, got: %v", err)
-	}
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic for missing primary key")
+		}
+		msg, ok := r.(string)
+		if !ok || !strings.Contains(msg, ErrNoPrimaryKey.Error()) {
+			t.Errorf("expected panic containing %q, got: %v", ErrNoPrimaryKey.Error(), r)
+		}
+	}()
+	NewDatabase[PKIgnoredDBTag](mockDB, "test", testDBRenderer)
 }
 
 // --- DatabaseProvider Tests ---
@@ -1749,10 +1648,7 @@ func TestDatabaseFromProvider_ErrorPropagation(t *testing.T) {
 
 func TestNewDatabaseProvider(t *testing.T) {
 	mockDB, _ := mockdb.New()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	if provider == nil {
 		t.Fatal("NewDatabaseProvider returned nil")
 	}
@@ -1760,13 +1656,17 @@ func TestNewDatabaseProvider(t *testing.T) {
 
 func TestNewDatabaseProvider_NoPrimaryKey(t *testing.T) {
 	mockDB, _ := mockdb.New()
-	_, err := NewDatabaseProvider[NoPKUser](mockDB, "test", testDBRenderer)
-	if err == nil {
-		t.Fatal("expected ErrNoPrimaryKey")
-	}
-	if !errors.Is(err, ErrNoPrimaryKey) {
-		t.Errorf("expected ErrNoPrimaryKey, got: %v", err)
-	}
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected panic for missing primary key")
+		}
+		msg, ok := r.(string)
+		if !ok || !strings.Contains(msg, ErrNoPrimaryKey.Error()) {
+			t.Errorf("expected panic containing %q, got: %v", ErrNoPrimaryKey.Error(), r)
+		}
+	}()
+	NewDatabaseProvider[NoPKUser](mockDB, "test", testDBRenderer)
 }
 
 func TestNewDatabaseFromProviderWithCodec(t *testing.T) {
@@ -1834,14 +1734,11 @@ func TestDatabaseFromProvider_ExecUpdate(t *testing.T) {
 
 func TestDatabaseProvider_Get(t *testing.T) {
 	mockDB, capture := mockdb.New()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	// Will return ErrNotFound since mockdb returns empty rows
-	_, err = provider.Get(ctx, "123")
+	_, err := provider.Get(ctx, "123")
 	if err == nil {
 		t.Error("expected error from empty mockdb")
 	}
@@ -1860,10 +1757,7 @@ func TestDatabaseProvider_Get(t *testing.T) {
 
 func TestDatabaseProvider_Set(t *testing.T) {
 	mockDB, capture := mockdb.New()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	user := &TestDBUser{ID: 1, Email: "test@example.com", Name: "Test", Age: intPtr(30)}
@@ -1885,13 +1779,10 @@ func TestDatabaseProvider_Set(t *testing.T) {
 
 func TestDatabaseProvider_Set_InvalidJSON(t *testing.T) {
 	mockDB, _ := mockdb.New()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
-	err = provider.Set(ctx, "1", []byte("not json"))
+	err := provider.Set(ctx, "1", []byte("not json"))
 	if err == nil {
 		t.Error("expected error for invalid JSON")
 	}
@@ -1899,14 +1790,11 @@ func TestDatabaseProvider_Set_InvalidJSON(t *testing.T) {
 
 func TestDatabaseProvider_Delete(t *testing.T) {
 	mockDB, capture := mockdb.New()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	// Default mockdb returns 1 row affected
-	err = provider.Delete(ctx, "123")
+	err := provider.Delete(ctx, "123")
 	if err != nil {
 		t.Fatalf("Delete failed: %v", err)
 	}
@@ -1922,16 +1810,13 @@ func TestDatabaseProvider_Delete(t *testing.T) {
 
 func TestDatabaseProvider_Delete_NotFound(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	cfg.SetRowsAffected(0)
 	defer cfg.Reset()
 
-	err = provider.Delete(ctx, "nonexistent")
+	err := provider.Delete(ctx, "nonexistent")
 	if !errors.Is(err, ErrNotFound) {
 		t.Errorf("expected ErrNotFound, got: %v", err)
 	}
@@ -1939,16 +1824,13 @@ func TestDatabaseProvider_Delete_NotFound(t *testing.T) {
 
 func TestDatabaseProvider_Delete_ExecError(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	cfg.SetExecErr(errors.New("exec error"))
 	defer cfg.Reset()
 
-	err = provider.Delete(ctx, "123")
+	err := provider.Delete(ctx, "123")
 	if err == nil {
 		t.Error("expected exec error")
 	}
@@ -1956,10 +1838,7 @@ func TestDatabaseProvider_Delete_ExecError(t *testing.T) {
 
 func TestDatabaseProvider_Exists(t *testing.T) {
 	mockDB, capture := mockdb.New()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	// mockdb returns empty rows, so Exists should return false
@@ -1982,10 +1861,7 @@ func TestDatabaseProvider_Exists(t *testing.T) {
 
 func TestDatabaseProvider_ExecQuery(t *testing.T) {
 	mockDB, capture := mockdb.New()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	results, err := provider.ExecQuery(ctx, QueryAll, nil)
@@ -2008,10 +1884,7 @@ func TestDatabaseProvider_ExecQuery(t *testing.T) {
 
 func TestDatabaseProvider_ExecSelect(t *testing.T) {
 	mockDB, capture := mockdb.New()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	stmt := edamame.NewSelectStatement("by-email", "Find by email", edamame.SelectSpec{
@@ -2021,7 +1894,7 @@ func TestDatabaseProvider_ExecSelect(t *testing.T) {
 	})
 
 	// Will return error since mockdb returns empty rows
-	_, err = provider.ExecSelect(ctx, stmt, map[string]any{"email": "test@example.com"})
+	_, err := provider.ExecSelect(ctx, stmt, map[string]any{"email": "test@example.com"})
 	if err == nil {
 		t.Error("expected error from empty mockdb")
 	}
@@ -2037,10 +1910,7 @@ func TestDatabaseProvider_ExecSelect(t *testing.T) {
 
 func TestDatabaseProvider_ExecUpdate(t *testing.T) {
 	mockDB, capture := mockdb.New()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	stmt := edamame.NewUpdateStatement("rename", "Rename user", edamame.UpdateSpec{
@@ -2049,7 +1919,7 @@ func TestDatabaseProvider_ExecUpdate(t *testing.T) {
 	})
 
 	// Will return error since mockdb returns empty rows for RETURNING
-	_, err = provider.ExecUpdate(ctx, stmt, map[string]any{"id": 1, "new_name": "Updated"})
+	_, err := provider.ExecUpdate(ctx, stmt, map[string]any{"id": 1, "new_name": "Updated"})
 	if err == nil {
 		t.Error("expected error from empty mockdb")
 	}
@@ -2065,10 +1935,7 @@ func TestDatabaseProvider_ExecUpdate(t *testing.T) {
 
 func TestDatabaseProvider_ExecAggregate(t *testing.T) {
 	mockDB, capture := mockdb.New()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	_, _ = provider.ExecAggregate(ctx, CountAll, nil)
@@ -2084,16 +1951,13 @@ func TestDatabaseProvider_ExecAggregate(t *testing.T) {
 
 func TestDatabaseProvider_Get_QueryError(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	cfg.SetQueryErr(errors.New("connection error"))
 	defer cfg.Reset()
 
-	_, err = provider.Get(ctx, "123")
+	_, err := provider.Get(ctx, "123")
 	if err == nil {
 		t.Error("expected error")
 	}
@@ -2104,16 +1968,13 @@ func TestDatabaseProvider_Get_QueryError(t *testing.T) {
 
 func TestDatabaseProvider_Exists_QueryError(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	cfg.SetQueryErr(errors.New("exists error"))
 	defer cfg.Reset()
 
-	_, err = provider.Exists(ctx, "123")
+	_, err := provider.Exists(ctx, "123")
 	if err == nil {
 		t.Error("expected error")
 	}
@@ -2123,10 +1984,7 @@ func TestDatabaseProvider_Exists_QueryError(t *testing.T) {
 
 func TestDatabaseProvider_Get_WithData(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	cfg.SetRowData(&mockdb.RowData{
@@ -2159,10 +2017,7 @@ func TestDatabaseProvider_Get_WithData(t *testing.T) {
 
 func TestDatabaseProvider_ExecQuery_WithData(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	cfg.SetRowData(&mockdb.RowData{
@@ -2195,10 +2050,7 @@ func TestDatabaseProvider_ExecQuery_WithData(t *testing.T) {
 
 func TestDatabaseProvider_ExecSelect_WithData(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	cfg.SetRowData(&mockdb.RowData{
@@ -2233,10 +2085,7 @@ func TestDatabaseProvider_ExecSelect_WithData(t *testing.T) {
 
 func TestDatabaseProvider_ExecUpdate_WithData(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	cfg.SetRowData(&mockdb.RowData{
@@ -2270,16 +2119,13 @@ func TestDatabaseProvider_ExecUpdate_WithData(t *testing.T) {
 
 func TestDatabaseProvider_ExecQuery_QueryError(t *testing.T) {
 	mockDB, _, cfg := mockdb.NewWithConfig()
-	provider, err := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
-	if err != nil {
-		t.Fatalf("NewDatabaseProvider failed: %v", err)
-	}
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
 	ctx := context.Background()
 
 	cfg.SetQueryErr(errors.New("query error"))
 	defer cfg.Reset()
 
-	_, err = provider.ExecQuery(ctx, QueryAll, nil)
+	_, err := provider.ExecQuery(ctx, QueryAll, nil)
 	if err == nil {
 		t.Error("expected error")
 	}

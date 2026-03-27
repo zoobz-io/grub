@@ -32,7 +32,7 @@ Swap Redis for BadgerDB. Move from S3 to Azure. Switch databases from SQLite to 
 // Key-value, blob, SQL, or vector — same patterns
 store := grub.NewStore[Config](provider)           // key-value
 bucket := grub.NewBucket[Document](provider)       // blob storage
-db, _ := grub.NewDatabase[User](conn, "users", renderer)        // SQL
+db := grub.NewDatabase[User](conn, "users", renderer)            // SQL
 index := grub.NewIndex[Embedding](provider)        // vector search
 ```
 

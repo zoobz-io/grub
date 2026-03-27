@@ -29,6 +29,8 @@ github.com/zoobz-io/edamame v1.0.2 h1:HisMAzyHOPW5vrzPmTFNLAJMBCrn+lt1LXFSEazLNR
 github.com/zoobz-io/edamame v1.0.2/go.mod h1:af1PKqjn61ba70CSmqB4gLZkZYz8QPDnQVeRFasiNu4=
 github.com/zoobz-io/lucene v0.0.3 h1:cERruZdIHzCXBj0sjZU0DDOTqyOKa0eMlqSkKJdUg0A=
 github.com/zoobz-io/lucene v0.0.3/go.mod h1:rGPnnt5XV8B4UcRKn/0VrlFM7fMz+tP7+lnKHSWP15o=
+github.com/zoobz-io/lucene v0.0.4 h1:hmt8rjzCVGPecVTCIYOiu/QDZioE8NQqUUvm+/FXl4E=
+github.com/zoobz-io/lucene v0.0.4/go.mod h1:rGPnnt5XV8B4UcRKn/0VrlFM7fMz+tP7+lnKHSWP15o=
 github.com/zoobz-io/sentinel v1.0.4 h1:nGn4zzwwjmd30tJ2nf75xgvkw47lrD+0dDYFMCg1s1k=
 github.com/zoobz-io/sentinel v1.0.4/go.mod h1:/Bao7Ro0XVh5oxDZBjpFaNuKosXY3wT5ccjtDnC4lRs=
 github.com/zoobz-io/soy v1.0.6 h1:QZY+1zS6pLv3EJyPmGrG/d4TFyoz4SDG8KTxWO1Qh/M=

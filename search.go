@@ -38,31 +38,23 @@ type Search[T any] struct {
 
 // NewSearch creates a Search for type T backed by the given provider.
 // Uses JSON codec by default.
-func NewSearch[T any](provider SearchProvider, index string) (*Search[T], error) {
-	builder, err := lucene.New[T]()
-	if err != nil {
-		return nil, err
-	}
+func NewSearch[T any](provider SearchProvider, index string) *Search[T] {
 	return &Search[T]{
 		provider: provider,
 		index:    index,
 		codec:    JSONCodec{},
-		builder:  builder,
-	}, nil
+		builder:  lucene.New[T](),
+	}
 }
 
 // NewSearchWithCodec creates a Search for type T with a custom codec.
-func NewSearchWithCodec[T any](provider SearchProvider, index string, codec Codec) (*Search[T], error) {
-	builder, err := lucene.New[T]()
-	if err != nil {
-		return nil, err
-	}
+func NewSearchWithCodec[T any](provider SearchProvider, index string, codec Codec) *Search[T] {
 	return &Search[T]{
 		provider: provider,
 		index:    index,
 		codec:    codec,
-		builder:  builder,
-	}, nil
+		builder:  lucene.New[T](),
+	}
 }
 
 // Index stores a document with the given ID.

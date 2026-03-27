@@ -39,7 +39,8 @@ type Database[T any] struct {
 
 // findPrimaryKey inspects the struct metadata and returns the db column name
 // of the field tagged with constraints:"primarykey".
-func findPrimaryKey[T any](exec *edamame.Executor[T]) (string, error) {
+// Panics if the struct has no primary key or multiple primary keys (programmer error).
+func findPrimaryKey[T any](exec *edamame.Executor[T]) string {
 	s := exec.Soy()
 	var keyCol string
 
@@ -57,7 +58,7 @@ func findPrimaryKey[T any](exec *edamame.Executor[T]) (string, error) {
 				continue
 			}
 			if keyCol != "" {
-				return "", ErrMultiplePrimaryKeys
+				panic("grub: " + ErrMultiplePrimaryKeys.Error())
 			}
 			keyCol = col
 			break
@@ -65,24 +66,22 @@ func findPrimaryKey[T any](exec *edamame.Executor[T]) (string, error) {
 	}
 
 	if keyCol == "" {
-		return "", ErrNoPrimaryKey
+		panic("grub: " + ErrNoPrimaryKey.Error())
 	}
-	return keyCol, nil
+	return keyCol
 }
 
 // NewDatabase creates a Database for type T.
 // The primary key column is derived from the struct field tagged with constraints:"primarykey".
+// Panics if T is not a valid struct or has incorrect primary key tags (programmer error).
 // Use the *Tx method variants (GetTx, SetTx, etc.) for transaction support.
-func NewDatabase[T any](db *sqlx.DB, table string, renderer astql.Renderer) (*Database[T], error) {
+func NewDatabase[T any](db *sqlx.DB, table string, renderer astql.Renderer) *Database[T] {
 	exec, err := edamame.New[T](db, table, renderer)
 	if err != nil {
-		return nil, err
+		panic("grub: invalid type for database: " + err.Error())
 	}
 
-	keyCol, err := findPrimaryKey(exec)
-	if err != nil {
-		return nil, err
-	}
+	keyCol := findPrimaryKey(exec)
 
 	// Register lifecycle hook callbacks on the soy instance so hooks
 	// fire through both wrapper methods and direct builder paths.
@@ -94,7 +93,7 @@ func NewDatabase[T any](db *sqlx.DB, table string, renderer astql.Renderer) (*Da
 		executor:  exec,
 		keyCol:    keyCol,
 		tableName: table,
-	}, nil
+	}
 }
 
 // NewDatabaseFromProvider creates a Database for type T backed by a DatabaseProvider.
