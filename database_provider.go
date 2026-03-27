@@ -19,17 +19,15 @@ type databaseProvider[T any] struct {
 
 // NewDatabaseProvider creates a DatabaseProvider backed by a sqlx.DB connection.
 // The primary key column is derived from the struct field tagged with constraints:"primarykey".
+// Panics if T is not a valid struct or has incorrect primary key tags (programmer error).
 // Lifecycle hooks (OnScan, OnRecord) are registered on the soy instance.
-func NewDatabaseProvider[T any](db *sqlx.DB, table string, renderer astql.Renderer) (DatabaseProvider, error) {
+func NewDatabaseProvider[T any](db *sqlx.DB, table string, renderer astql.Renderer) DatabaseProvider {
 	exec, err := edamame.New[T](db, table, renderer)
 	if err != nil {
-		return nil, err
+		panic("grub: invalid type for database provider: " + err.Error())
 	}
 
-	keyCol, err := findPrimaryKey(exec)
-	if err != nil {
-		return nil, err
-	}
+	keyCol := findPrimaryKey(exec)
 
 	s := exec.Soy()
 	s.OnScan(callAfterLoad)
@@ -39,7 +37,7 @@ func NewDatabaseProvider[T any](db *sqlx.DB, table string, renderer astql.Render
 		executor: exec,
 		keyCol:   keyCol,
 		codec:    JSONCodec{},
-	}, nil
+	}
 }
 
 // Get retrieves the record at key as raw bytes.

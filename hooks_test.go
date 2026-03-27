@@ -183,13 +183,10 @@ func TestCallAfterLoadSlice_Empty(t *testing.T) {
 
 func TestDatabaseHooks_SetBeforeSaveError(t *testing.T) {
 	db, _ := mockdb.New()
-	d, err := NewDatabase[failingBeforeSaveDBUser](db, "test_users", astqlsqlite.New())
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	d := NewDatabase[failingBeforeSaveDBUser](db, "test_users", astqlsqlite.New())
 	ctx := context.Background()
 	rec := &failingBeforeSaveDBUser{ID: 1, Email: "a@b.c", Name: "test"}
-	err = d.Set(ctx, "1", rec)
+	err := d.Set(ctx, "1", rec)
 	if !errors.Is(err, errHook) {
 		t.Fatalf("expected hook error, got: %v", err)
 	}
@@ -197,14 +194,11 @@ func TestDatabaseHooks_SetBeforeSaveError(t *testing.T) {
 
 func TestDatabaseHooks_SetTxBeforeSaveError(t *testing.T) {
 	db, _ := mockdb.New()
-	d, err := NewDatabase[failingBeforeSaveDBUser](db, "test_users", astqlsqlite.New())
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	d := NewDatabase[failingBeforeSaveDBUser](db, "test_users", astqlsqlite.New())
 	ctx := context.Background()
 	tx, _ := db.Beginx()
 	rec := &failingBeforeSaveDBUser{ID: 1, Email: "a@b.c", Name: "test"}
-	err = d.SetTx(ctx, tx, "1", rec)
+	err := d.SetTx(ctx, tx, "1", rec)
 	if !errors.Is(err, errHook) {
 		t.Fatalf("expected hook error, got: %v", err)
 	}
@@ -212,12 +206,9 @@ func TestDatabaseHooks_SetTxBeforeSaveError(t *testing.T) {
 
 func TestDatabaseHooks_DeleteBeforeDeleteError(t *testing.T) {
 	db, _ := mockdb.New()
-	d, err := NewDatabase[failingBeforeDeleteDBUser](db, "test_users", astqlsqlite.New())
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	d := NewDatabase[failingBeforeDeleteDBUser](db, "test_users", astqlsqlite.New())
 	ctx := context.Background()
-	err = d.Delete(ctx, "1")
+	err := d.Delete(ctx, "1")
 	if !errors.Is(err, errHook) {
 		t.Fatalf("expected hook error, got: %v", err)
 	}
@@ -225,13 +216,10 @@ func TestDatabaseHooks_DeleteBeforeDeleteError(t *testing.T) {
 
 func TestDatabaseHooks_DeleteTxBeforeDeleteError(t *testing.T) {
 	db, _ := mockdb.New()
-	d, err := NewDatabase[failingBeforeDeleteDBUser](db, "test_users", astqlsqlite.New())
-	if err != nil {
-		t.Fatalf("NewDatabase failed: %v", err)
-	}
+	d := NewDatabase[failingBeforeDeleteDBUser](db, "test_users", astqlsqlite.New())
 	ctx := context.Background()
 	tx, _ := db.Beginx()
-	err = d.DeleteTx(ctx, tx, "1")
+	err := d.DeleteTx(ctx, tx, "1")
 	if !errors.Is(err, errHook) {
 		t.Fatalf("expected hook error, got: %v", err)
 	}
