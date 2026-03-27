@@ -10,7 +10,7 @@ require (
 	github.com/zoobz-io/astql v1.0.7
 	github.com/zoobz-io/atom v1.0.1
 	github.com/zoobz-io/edamame v1.0.2
-	github.com/zoobz-io/lucene v0.0.3
+	github.com/zoobz-io/lucene v0.0.4
 	github.com/zoobz-io/sentinel v1.0.4
 	github.com/zoobz-io/soy v1.0.6
 	github.com/zoobz-io/vecna v0.0.3
