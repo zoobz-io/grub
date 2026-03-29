@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/zoobz-io/lucene"
@@ -344,5 +345,174 @@ func TestParseAggregations_FilterAgg(t *testing.T) {
 	}
 	if r.Buckets[0].SubAggs[0].Value == nil || *r.Buckets[0].SubAggs[0].Value != 8.5 {
 		t.Error("expected sub-agg value 8.5")
+	}
+}
+
+func TestToFloat64(t *testing.T) {
+	tests := []struct {
+		name string
+		in   any
+		want float64
+	}{
+		{"float64", float64(1.5), 1.5},
+		{"float32", float32(2.5), 2.5},
+		{"int", int(3), 3.0},
+		{"int64", int64(4), 4.0},
+		{"json.Number", json.Number("5.5"), 5.5},
+		{"json.Number_invalid", json.Number("bad"), 0},
+		{"nil", nil, 0},
+		{"string", "nope", 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := toFloat64(tt.in)
+			if got != tt.want {
+				t.Errorf("toFloat64(%v) = %f, want %f", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestToInt64(t *testing.T) {
+	tests := []struct {
+		name string
+		in   any
+		want int64
+	}{
+		{"float64", float64(10), 10},
+		{"float32", float32(20), 20},
+		{"int", int(30), 30},
+		{"int64", int64(40), 40},
+		{"json.Number", json.Number("50"), 50},
+		{"json.Number_invalid", json.Number("bad"), 0},
+		{"nil", nil, 0},
+		{"string", "nope", 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := toInt64(tt.in)
+			if got != tt.want {
+				t.Errorf("toInt64(%v) = %d, want %d", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestParseAggregations_MetricValueMissing(t *testing.T) {
+	// Metric agg with no "value" key
+	raw := map[string]any{
+		"metric": map[string]any{"other": float64(1)},
+	}
+	qb := newBuilder()
+	aggs := []lucene.Aggregation{qb.Avg("metric", "price")}
+	results := ParseAggregations(raw, aggs)
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d", len(results))
+	}
+	if results[0].Value != nil {
+		t.Error("expected nil Value when key is missing")
+	}
+}
+
+func TestParseAggregations_PercentilesMissingValues(t *testing.T) {
+	// Percentiles with no "values" key
+	raw := map[string]any{
+		"pct": map[string]any{"other": float64(1)},
+	}
+	qb := newBuilder()
+	aggs := []lucene.Aggregation{qb.Percentiles("pct", "price")}
+	results := ParseAggregations(raw, aggs)
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d", len(results))
+	}
+	if results[0].Percentiles != nil {
+		t.Error("expected nil Percentiles when values key is missing")
+	}
+}
+
+func TestParseAggregations_PercentilesWrongType(t *testing.T) {
+	// Percentiles where "values" is not a map
+	raw := map[string]any{
+		"pct": map[string]any{"values": "not a map"},
+	}
+	qb := newBuilder()
+	aggs := []lucene.Aggregation{qb.Percentiles("pct", "price")}
+	results := ParseAggregations(raw, aggs)
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d", len(results))
+	}
+	if results[0].Percentiles != nil {
+		t.Error("expected nil Percentiles when values is wrong type")
+	}
+}
+
+func TestParseAggregations_BucketsWrongType(t *testing.T) {
+	// Terms agg where "buckets" is not a slice
+	raw := map[string]any{
+		"cats": map[string]any{"buckets": "not a slice"},
+	}
+	qb := newBuilder()
+	aggs := []lucene.Aggregation{qb.TermsAgg("cats", "category")}
+	results := ParseAggregations(raw, aggs)
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d", len(results))
+	}
+	if results[0].Buckets != nil {
+		t.Error("expected nil Buckets when buckets value is wrong type")
+	}
+}
+
+func TestParseAggregations_BucketItemWrongType(t *testing.T) {
+	// Terms agg where bucket items are not maps
+	raw := map[string]any{
+		"cats": map[string]any{
+			"buckets": []any{"not a map", 42},
+		},
+	}
+	qb := newBuilder()
+	aggs := []lucene.Aggregation{qb.TermsAgg("cats", "category")}
+	results := ParseAggregations(raw, aggs)
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d", len(results))
+	}
+	if len(results[0].Buckets) != 0 {
+		t.Errorf("expected 0 buckets, got %d", len(results[0].Buckets))
+	}
+}
+
+func TestParseAggregations_RawNotMap(t *testing.T) {
+	// Agg value is not a map — should be skipped
+	raw := map[string]any{
+		"metric": "not a map",
+	}
+	qb := newBuilder()
+	aggs := []lucene.Aggregation{qb.Avg("metric", "price")}
+	results := ParseAggregations(raw, aggs)
+	if results != nil {
+		t.Errorf("expected nil results when agg value is not a map, got %d", len(results))
+	}
+}
+
+func TestParseAggregations_IntDocCount(t *testing.T) {
+	// Test with int-typed doc_count (not float64)
+	raw := map[string]any{
+		"cats": map[string]any{
+			"buckets": []any{
+				map[string]any{"key": "a", "doc_count": int(7)},
+				map[string]any{"key": "b", "doc_count": int64(3)},
+			},
+		},
+	}
+	qb := newBuilder()
+	aggs := []lucene.Aggregation{qb.TermsAgg("cats", "category")}
+	results := ParseAggregations(raw, aggs)
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d", len(results))
+	}
+	if results[0].Buckets[0].DocCount != 7 {
+		t.Errorf("expected doc_count 7, got %d", results[0].Buckets[0].DocCount)
+	}
+	if results[0].Buckets[1].DocCount != 3 {
+		t.Errorf("expected doc_count 3, got %d", results[0].Buckets[1].DocCount)
 	}
 }
