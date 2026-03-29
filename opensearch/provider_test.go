@@ -474,7 +474,7 @@ func TestProvider_Count(t *testing.T) {
 		ctx := context.Background()
 
 		// Create a simple builder with empty struct for MatchAll
-		b, _ := lucene.New[struct{}]()
+		b := lucene.New[struct{}]()
 		query := b.MatchAll()
 
 		count, err := provider.Count(ctx, "products", query)

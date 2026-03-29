@@ -299,6 +299,15 @@ type AtomicIndex interface {
 	Filter(ctx context.Context, filter *vecna.Filter, limit int) ([]AtomicVector, error)
 }
 
+// AggResult is a single typed aggregation result.
+type AggResult = shared.AggResult
+
+// AggBucket is a single bucket in a bucket aggregation result.
+type AggBucket = shared.AggBucket
+
+// AggStats holds the result of a stats or extended_stats aggregation.
+type AggStats = shared.AggStats
+
 // SearchHit represents a single search result.
 type SearchHit = shared.SearchHit
 

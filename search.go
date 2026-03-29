@@ -6,6 +6,7 @@ import (
 
 	"github.com/zoobz-io/atom"
 	"github.com/zoobz-io/grub/internal/atomix"
+	"github.com/zoobz-io/grub/internal/shared"
 	"github.com/zoobz-io/lucene"
 )
 
@@ -23,6 +24,20 @@ type SearchResult[T any] struct {
 	MaxScore float64
 	// Aggregations are returned as raw JSON for flexibility.
 	Aggregations map[string]any
+	// TypedAggs contains typed aggregation results parsed using
+	// the aggregation definitions from the search request.
+	// Nil when no aggregations were requested or parsed.
+	TypedAggs []AggResult
+}
+
+// Agg returns the typed aggregation result by name, or nil if not found.
+func (r *SearchResult[T]) Agg(name string) *AggResult {
+	for i := range r.TypedAggs {
+		if r.TypedAggs[i].Name == name {
+			return &r.TypedAggs[i]
+		}
+	}
+	return nil
 }
 
 // Search provides type-safe search operations for documents of type T.
@@ -176,11 +191,18 @@ func (s *Search[T]) Execute(ctx context.Context, search *lucene.Search) (*Search
 			Score:   hit.Score,
 		}
 	}
+	// Parse typed aggregations at the wrapper level so all providers
+	// (including custom SearchProvider implementations) get typed results.
+	typedAggs := result.TypedAggs
+	if typedAggs == nil && len(result.Aggregations) > 0 {
+		typedAggs = shared.ParseAggregations(result.Aggregations, search.AggsValue())
+	}
 	return &SearchResult[T]{
 		Hits:         hits,
 		Total:        result.Total,
 		MaxScore:     result.MaxScore,
 		Aggregations: result.Aggregations,
+		TypedAggs:    typedAggs,
 	}, nil
 }
 

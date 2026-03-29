@@ -482,7 +482,7 @@ func TestProvider_Count(t *testing.T) {
 		provider := New(client, Config{Version: esrenderer.V8})
 		ctx := context.Background()
 
-		b, _ := lucene.New[struct{}]()
+		b := lucene.New[struct{}]()
 		query := b.MatchAll()
 
 		count, err := provider.Count(ctx, "products", query)
