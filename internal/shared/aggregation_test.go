@@ -1,4 +1,4 @@
-package shared
+package shared //nolint:revive // internal shared package is intentional
 
 import (
 	"encoding/json"
