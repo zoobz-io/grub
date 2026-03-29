@@ -13,7 +13,6 @@ import (
 	"github.com/opensearch-project/opensearch-go/v4"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 	"github.com/zoobz-io/grub"
-	"github.com/zoobz-io/grub/internal/shared"
 	"github.com/zoobz-io/lucene"
 	osrenderer "github.com/zoobz-io/lucene/opensearch"
 )
@@ -260,7 +259,7 @@ func (p *Provider) Search(ctx context.Context, index string, search *lucene.Sear
 		return nil, fmt.Errorf("opensearch: search failed with status %d", httpResp.StatusCode)
 	}
 
-	return p.parseSearchResponse(&resp, search.AggsValue())
+	return p.parseSearchResponse(&resp)
 }
 
 // Count returns the number of documents matching the query.
@@ -316,7 +315,7 @@ func (p *Provider) Refresh(ctx context.Context, index string) error {
 }
 
 // parseSearchResponse converts OpenSearch response to grub.SearchResponse.
-func (p *Provider) parseSearchResponse(resp *opensearchapi.SearchResp, aggs []lucene.Aggregation) (*grub.SearchResponse, error) {
+func (p *Provider) parseSearchResponse(resp *opensearchapi.SearchResp) (*grub.SearchResponse, error) {
 	var maxScore float64
 	if resp.Hits.MaxScore != nil {
 		maxScore = float64(*resp.Hits.MaxScore)
@@ -346,9 +345,6 @@ func (p *Provider) parseSearchResponse(resp *opensearchapi.SearchResp, aggs []lu
 			result.Aggregations["_raw"] = string(resp.Aggregations)
 		} else if m, ok := parsed.(map[string]any); ok {
 			result.Aggregations = m
-		}
-		if len(result.Aggregations) > 0 && len(aggs) > 0 {
-			result.TypedAggs = shared.ParseAggregations(result.Aggregations, aggs)
 		}
 	}
 

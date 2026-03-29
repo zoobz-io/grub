@@ -473,24 +473,8 @@ func TestSearch_Execute(t *testing.T) {
 			Aggregations: map[string]any{
 				"categories": map[string]any{
 					"buckets": []any{
-						map[string]any{"key": "footwear", "doc_count": 10},
-						map[string]any{"key": "apparel", "doc_count": 5},
-					},
-				},
-			},
-			TypedAggs: []AggResult{
-				{
-					Name: "categories",
-					Type: lucene.AggTerms,
-					Buckets: []AggBucket{
-						{Key: "footwear", DocCount: 10},
-						{Key: "apparel", DocCount: 5},
-					},
-					Raw: map[string]any{
-						"buckets": []any{
-							map[string]any{"key": "footwear", "doc_count": 10},
-							map[string]any{"key": "apparel", "doc_count": 5},
-						},
+						map[string]any{"key": "footwear", "doc_count": float64(10)},
+						map[string]any{"key": "apparel", "doc_count": float64(5)},
 					},
 				},
 			},
@@ -513,7 +497,7 @@ func TestSearch_Execute(t *testing.T) {
 			t.Error("expected categories aggregation")
 		}
 
-		// Verify typed aggregations pass through
+		// Verify typed aggregations parsed by Execute()
 		if result.TypedAggs == nil {
 			t.Fatal("expected TypedAggs to be populated")
 		}

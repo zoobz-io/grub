@@ -410,13 +410,7 @@ func TestProvider_Search(t *testing.T) {
 		provider := New(client, Config{Version: esrenderer.V8})
 		ctx := context.Background()
 
-		type testDoc struct {
-			Category string `json:"category"`
-		}
-		qb := lucene.New[testDoc]()
-		search := lucene.NewSearch().
-			Size(0).
-			Aggs(qb.TermsAgg("categories", "category"))
+		search := lucene.NewSearch().Size(0)
 
 		result, err := provider.Search(ctx, "products", search)
 		if err != nil {
@@ -428,27 +422,6 @@ func TestProvider_Search(t *testing.T) {
 		}
 		if _, ok := result.Aggregations["categories"]; !ok {
 			t.Error("expected categories aggregation")
-		}
-
-		// Verify typed aggregations
-		if result.TypedAggs == nil {
-			t.Fatal("expected TypedAggs to be populated")
-		}
-		if len(result.TypedAggs) != 1 {
-			t.Fatalf("expected 1 typed agg, got %d", len(result.TypedAggs))
-		}
-		agg := result.TypedAggs[0]
-		if agg.Name != "categories" {
-			t.Errorf("expected name 'categories', got %q", agg.Name)
-		}
-		if len(agg.Buckets) != 2 {
-			t.Fatalf("expected 2 buckets, got %d", len(agg.Buckets))
-		}
-		if agg.Buckets[0].Key != "electronics" {
-			t.Errorf("expected key 'electronics', got %q", agg.Buckets[0].Key)
-		}
-		if agg.Buckets[0].DocCount != 50 {
-			t.Errorf("expected doc_count 50, got %d", agg.Buckets[0].DocCount)
 		}
 	})
 

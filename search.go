@@ -6,6 +6,7 @@ import (
 
 	"github.com/zoobz-io/atom"
 	"github.com/zoobz-io/grub/internal/atomix"
+	"github.com/zoobz-io/grub/internal/shared"
 	"github.com/zoobz-io/lucene"
 )
 
@@ -190,12 +191,18 @@ func (s *Search[T]) Execute(ctx context.Context, search *lucene.Search) (*Search
 			Score:   hit.Score,
 		}
 	}
+	// Parse typed aggregations at the wrapper level so all providers
+	// (including custom SearchProvider implementations) get typed results.
+	typedAggs := result.TypedAggs
+	if typedAggs == nil && len(result.Aggregations) > 0 {
+		typedAggs = shared.ParseAggregations(result.Aggregations, search.AggsValue())
+	}
 	return &SearchResult[T]{
 		Hits:         hits,
 		Total:        result.Total,
 		MaxScore:     result.MaxScore,
 		Aggregations: result.Aggregations,
-		TypedAggs:    result.TypedAggs,
+		TypedAggs:    typedAggs,
 	}, nil
 }
 
