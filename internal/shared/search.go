@@ -28,6 +28,11 @@ type SearchResponse struct {
 
 	// Aggregations contains aggregation results as raw JSON.
 	Aggregations map[string]any
+
+	// TypedAggs contains typed aggregation results parsed using
+	// the aggregation definitions from the search request.
+	// Nil when no aggregations were requested or parsed.
+	TypedAggs []AggResult
 }
 
 // AtomicDocument holds a search document with atomized content.

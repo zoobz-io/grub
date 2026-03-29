@@ -13,6 +13,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/zoobz-io/grub"
+	"github.com/zoobz-io/grub/internal/shared"
 	"github.com/zoobz-io/lucene"
 	esrenderer "github.com/zoobz-io/lucene/elasticsearch"
 )
@@ -261,7 +262,7 @@ func (p *Provider) Search(ctx context.Context, index string, search *lucene.Sear
 		return nil, fmt.Errorf("elasticsearch: search failed with status %d: %s", resp.StatusCode, string(errBody))
 	}
 
-	return p.parseSearchResponse(resp.Body)
+	return p.parseSearchResponse(resp.Body, search.AggsValue())
 }
 
 // Count returns the number of documents matching the query.
@@ -370,7 +371,7 @@ func (p *Provider) DeleteIndex(ctx context.Context, index string) error {
 }
 
 // parseSearchResponse converts Elasticsearch response to grub.SearchResponse.
-func (p *Provider) parseSearchResponse(body io.Reader) (*grub.SearchResponse, error) {
+func (p *Provider) parseSearchResponse(body io.Reader, aggs []lucene.Aggregation) (*grub.SearchResponse, error) {
 	var resp searchResponse
 	if err := json.NewDecoder(body).Decode(&resp); err != nil {
 		return nil, err
@@ -399,6 +400,9 @@ func (p *Provider) parseSearchResponse(body io.Reader) (*grub.SearchResponse, er
 			result.Aggregations["_raw"] = string(resp.Aggregations)
 		} else if m, ok := parsed.(map[string]any); ok {
 			result.Aggregations = m
+		}
+		if len(result.Aggregations) > 0 && len(aggs) > 0 {
+			result.TypedAggs = shared.ParseAggregations(result.Aggregations, aggs)
 		}
 	}
 

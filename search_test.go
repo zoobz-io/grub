@@ -478,6 +478,22 @@ func TestSearch_Execute(t *testing.T) {
 					},
 				},
 			},
+			TypedAggs: []AggResult{
+				{
+					Name: "categories",
+					Type: lucene.AggTerms,
+					Buckets: []AggBucket{
+						{Key: "footwear", DocCount: 10},
+						{Key: "apparel", DocCount: 5},
+					},
+					Raw: map[string]any{
+						"buckets": []any{
+							map[string]any{"key": "footwear", "doc_count": 10},
+							map[string]any{"key": "apparel", "doc_count": 5},
+						},
+					},
+				},
+			},
 		}
 		defer func() { provider.searchResp = nil }()
 
@@ -495,6 +511,29 @@ func TestSearch_Execute(t *testing.T) {
 		}
 		if _, ok := result.Aggregations["categories"]; !ok {
 			t.Error("expected categories aggregation")
+		}
+
+		// Verify typed aggregations pass through
+		if result.TypedAggs == nil {
+			t.Fatal("expected TypedAggs to be populated")
+		}
+		agg := result.Agg("categories")
+		if agg == nil {
+			t.Fatal("expected Agg('categories') to return result")
+		}
+		if len(agg.Buckets) != 2 {
+			t.Fatalf("expected 2 buckets, got %d", len(agg.Buckets))
+		}
+		if agg.Buckets[0].Key != "footwear" {
+			t.Errorf("expected key 'footwear', got %q", agg.Buckets[0].Key)
+		}
+		if agg.Buckets[0].DocCount != 10 {
+			t.Errorf("expected doc_count 10, got %d", agg.Buckets[0].DocCount)
+		}
+
+		// Verify Agg() returns nil for non-existent name
+		if result.Agg("nonexistent") != nil {
+			t.Error("expected Agg('nonexistent') to return nil")
 		}
 	})
 
