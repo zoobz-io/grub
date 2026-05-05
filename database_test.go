@@ -475,6 +475,57 @@ func TestDatabase_ExecSelect_NotFound(t *testing.T) {
 	}
 }
 
+func TestDatabase_ExecSelect_WithData(t *testing.T) {
+	mockDB, _, cfg := mockdb.NewWithConfig()
+	ctx := context.Background()
+
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
+
+	cfg.SetRowData(&mockdb.RowData{
+		Columns: []string{"id", "email", "name", "age"},
+		Rows:    [][]any{{int64(1), "test@example.com", "Test", int64(25)}},
+	})
+	defer cfg.Reset()
+
+	stmt := edamame.NewSelectStatement("by-email", "Find user by email", edamame.SelectSpec{
+		Where: []edamame.ConditionSpec{
+			{Field: "email", Operator: "=", Param: "email"},
+		},
+	})
+
+	result, err := db.ExecSelect(ctx, stmt, map[string]any{"email": "test@example.com"})
+	if err != nil {
+		t.Fatalf("ExecSelect failed: %v", err)
+	}
+	if result.ID != 1 {
+		t.Errorf("ID mismatch: got %d", result.ID)
+	}
+}
+
+func TestDatabase_ExecSelect_QueryError(t *testing.T) {
+	mockDB, _, cfg := mockdb.NewWithConfig()
+	ctx := context.Background()
+
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
+
+	cfg.SetQueryErr(errors.New("connection error"))
+	defer cfg.Reset()
+
+	stmt := edamame.NewSelectStatement("by-email", "Find user by email", edamame.SelectSpec{
+		Where: []edamame.ConditionSpec{
+			{Field: "email", Operator: "=", Param: "email"},
+		},
+	})
+
+	_, err := db.ExecSelect(ctx, stmt, map[string]any{"email": "test@example.com"})
+	if err == nil {
+		t.Error("expected error")
+	}
+	if errors.Is(err, ErrNotFound) {
+		t.Error("expected non-NotFound error for connection failures")
+	}
+}
+
 func TestDatabase_ExecAggregate(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
@@ -876,6 +927,69 @@ func TestDatabase_ExecSelectTx_NotFound(t *testing.T) {
 	}
 	if !errors.Is(err, ErrNotFound) {
 		t.Errorf("expected ErrNotFound, got: %v", err)
+	}
+}
+
+func TestDatabase_ExecSelectTx_WithData(t *testing.T) {
+	mockDB, _, cfg := mockdb.NewWithConfig()
+	ctx := context.Background()
+
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
+
+	tx, err := mockDB.BeginTxx(ctx, nil)
+	if err != nil {
+		t.Fatalf("BeginTxx failed: %v", err)
+	}
+	defer tx.Rollback()
+
+	cfg.SetRowData(&mockdb.RowData{
+		Columns: []string{"id", "email", "name", "age"},
+		Rows:    [][]any{{int64(1), "test@example.com", "Test", int64(25)}},
+	})
+	defer cfg.Reset()
+
+	stmt := edamame.NewSelectStatement("by-email", "Find user by email", edamame.SelectSpec{
+		Where: []edamame.ConditionSpec{
+			{Field: "email", Operator: "=", Param: "email"},
+		},
+	})
+
+	result, err := db.ExecSelectTx(ctx, tx, stmt, map[string]any{"email": "test@example.com"})
+	if err != nil {
+		t.Fatalf("ExecSelectTx failed: %v", err)
+	}
+	if result.ID != 1 {
+		t.Errorf("ID mismatch: got %d", result.ID)
+	}
+}
+
+func TestDatabase_ExecSelectTx_QueryError(t *testing.T) {
+	mockDB, _, cfg := mockdb.NewWithConfig()
+	ctx := context.Background()
+
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
+
+	tx, err := mockDB.BeginTxx(ctx, nil)
+	if err != nil {
+		t.Fatalf("BeginTxx failed: %v", err)
+	}
+	defer tx.Rollback()
+
+	cfg.SetQueryErr(errors.New("connection error"))
+	defer cfg.Reset()
+
+	stmt := edamame.NewSelectStatement("by-email", "Find user by email", edamame.SelectSpec{
+		Where: []edamame.ConditionSpec{
+			{Field: "email", Operator: "=", Param: "email"},
+		},
+	})
+
+	_, err = db.ExecSelectTx(ctx, tx, stmt, map[string]any{"email": "test@example.com"})
+	if err == nil {
+		t.Error("expected error")
+	}
+	if errors.Is(err, ErrNotFound) {
+		t.Error("expected non-NotFound error for connection failures")
 	}
 }
 
@@ -1957,6 +2071,29 @@ func TestDatabaseProvider_ExecSelect(t *testing.T) {
 	}
 	if !strings.Contains(query.Query, "SELECT") {
 		t.Errorf("expected SELECT query, got: %s", query.Query)
+	}
+}
+
+func TestDatabaseProvider_ExecSelect_QueryError(t *testing.T) {
+	mockDB, _, cfg := mockdb.NewWithConfig()
+	provider := NewDatabaseProvider[TestDBUser](mockDB, "test_users", testDBRenderer)
+	ctx := context.Background()
+
+	cfg.SetQueryErr(errors.New("connection error"))
+	defer cfg.Reset()
+
+	stmt := edamame.NewSelectStatement("by-email", "Find by email", edamame.SelectSpec{
+		Where: []edamame.ConditionSpec{
+			{Field: "email", Operator: "=", Param: "email"},
+		},
+	})
+
+	_, err := provider.ExecSelect(ctx, stmt, map[string]any{"email": "test@example.com"})
+	if err == nil {
+		t.Error("expected error")
+	}
+	if errors.Is(err, ErrNotFound) {
+		t.Error("expected non-NotFound error for connection failures")
 	}
 }
 
