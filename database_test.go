@@ -453,6 +453,28 @@ func TestDatabase_ExecUpdate(t *testing.T) {
 	}
 }
 
+func TestDatabase_ExecSelect_NotFound(t *testing.T) {
+	mockDB, _ := mockdb.New()
+	ctx := context.Background()
+
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
+
+	stmt := edamame.NewSelectStatement("by-email", "Find user by email", edamame.SelectSpec{
+		Where: []edamame.ConditionSpec{
+			{Field: "email", Operator: "=", Param: "email"},
+		},
+	})
+
+	// mockdb returns empty rows, which should result in ErrNotFound
+	_, err := db.ExecSelect(ctx, stmt, map[string]any{"email": "nonexistent@example.com"})
+	if err == nil {
+		t.Error("expected error for missing record")
+	}
+	if !errors.Is(err, ErrNotFound) {
+		t.Errorf("expected ErrNotFound, got: %v", err)
+	}
+}
+
 func TestDatabase_ExecAggregate(t *testing.T) {
 	mockDB, capture := mockdb.New()
 	ctx := context.Background()
@@ -827,6 +849,33 @@ func TestDatabase_ExecUpdateTx(t *testing.T) {
 	}
 	if !strings.Contains(query.Query, `"name"`) {
 		t.Errorf("expected name column in SET clause, got: %s", query.Query)
+	}
+}
+
+func TestDatabase_ExecSelectTx_NotFound(t *testing.T) {
+	mockDB, _ := mockdb.New()
+	ctx := context.Background()
+
+	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
+
+	tx, err := mockDB.BeginTxx(ctx, nil)
+	if err != nil {
+		t.Fatalf("BeginTxx failed: %v", err)
+	}
+	defer tx.Rollback()
+
+	stmt := edamame.NewSelectStatement("by-email", "Find user by email", edamame.SelectSpec{
+		Where: []edamame.ConditionSpec{
+			{Field: "email", Operator: "=", Param: "email"},
+		},
+	})
+
+	_, err = db.ExecSelectTx(ctx, tx, stmt, map[string]any{"email": "nonexistent@example.com"})
+	if err == nil {
+		t.Error("expected error for missing record")
+	}
+	if !errors.Is(err, ErrNotFound) {
+		t.Errorf("expected ErrNotFound, got: %v", err)
 	}
 }
 
@@ -1893,10 +1942,13 @@ func TestDatabaseProvider_ExecSelect(t *testing.T) {
 		},
 	})
 
-	// Will return error since mockdb returns empty rows
+	// mockdb returns empty rows, should result in ErrNotFound
 	_, err := provider.ExecSelect(ctx, stmt, map[string]any{"email": "test@example.com"})
 	if err == nil {
 		t.Error("expected error from empty mockdb")
+	}
+	if !errors.Is(err, ErrNotFound) {
+		t.Errorf("expected ErrNotFound, got: %v", err)
 	}
 
 	query, ok := capture.Last()

@@ -323,7 +323,14 @@ func (d *Database[T]) ExecSelect(ctx context.Context, stmt edamame.SelectStateme
 		}
 		return &value, nil
 	}
-	return d.executor.ExecSelect(ctx, stmt, params)
+	result, err := d.executor.ExecSelect(ctx, stmt, params)
+	if err != nil {
+		if errors.Is(err, soy.ErrNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return result, nil
 }
 
 // ExecUpdate executes an update statement.
@@ -433,7 +440,14 @@ func (d *Database[T]) ExecQueryTx(ctx context.Context, tx *sqlx.Tx, stmt edamame
 // Panics if the database was constructed from a provider.
 func (d *Database[T]) ExecSelectTx(ctx context.Context, tx *sqlx.Tx, stmt edamame.SelectStatement, params map[string]any) (*T, error) {
 	d.requireExecutor("ExecSelectTx")
-	return d.executor.ExecSelectTx(ctx, tx, stmt, params)
+	result, err := d.executor.ExecSelectTx(ctx, tx, stmt, params)
+	if err != nil {
+		if errors.Is(err, soy.ErrNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return result, nil
 }
 
 // ExecUpdateTx executes an update statement within a transaction.

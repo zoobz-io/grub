@@ -129,6 +129,9 @@ func (p *databaseProvider[T]) ExecQuery(ctx context.Context, stmt edamame.QueryS
 func (p *databaseProvider[T]) ExecSelect(ctx context.Context, stmt edamame.SelectStatement, params map[string]any) ([]byte, error) {
 	result, err := p.executor.ExecSelect(ctx, stmt, params)
 	if err != nil {
+		if errors.Is(err, soy.ErrNotFound) {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 	return p.codec.Encode(result)
