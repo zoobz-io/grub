@@ -316,6 +316,136 @@ func TestConn_ExecContext_RowsAffected(t *testing.T) {
 	}
 }
 
+func TestConn_QueryContext_QueueDifferentShapes(t *testing.T) {
+	capture := &Capture{}
+	config := &Config{}
+	conn := &Conn{capture: capture, config: config}
+	ctx := context.Background()
+
+	// A multi-query method: a row-shaped read, then a count-shaped read.
+	config.PushRowData(&RowData{Columns: []string{"id", "name"}, Rows: [][]any{{int64(1), "a"}}})
+	config.PushRowData(&RowData{Columns: []string{"count"}, Rows: [][]any{{int64(3)}}})
+
+	rows1, err := conn.QueryContext(ctx, "SELECT id, name FROM t FOR UPDATE", nil)
+	if err != nil {
+		t.Fatalf("query 1 failed: %v", err)
+	}
+	if got := rows1.Columns(); len(got) != 2 || got[0] != "id" {
+		t.Errorf("query 1: unexpected columns %v", got)
+	}
+
+	rows2, err := conn.QueryContext(ctx, "SELECT COUNT(*) FROM t", nil)
+	if err != nil {
+		t.Fatalf("query 2 failed: %v", err)
+	}
+	if got := rows2.Columns(); len(got) != 1 || got[0] != "count" {
+		t.Errorf("query 2: unexpected columns %v", got)
+	}
+}
+
+func TestConn_QueryContext_QueueFallsBackToSingle(t *testing.T) {
+	capture := &Capture{}
+	config := &Config{}
+	conn := &Conn{capture: capture, config: config}
+	ctx := context.Background()
+
+	config.PushRowData(&RowData{Columns: []string{"id"}, Rows: [][]any{{int64(1)}}})
+	config.SetRowData(&RowData{Columns: []string{"fallback"}, Rows: [][]any{{int64(9)}}})
+
+	// First call consumes the queue.
+	rows1, err := conn.QueryContext(ctx, "SELECT id FROM t", nil)
+	if err != nil {
+		t.Fatalf("query 1 failed: %v", err)
+	}
+	if got := rows1.Columns(); len(got) != 1 || got[0] != "id" {
+		t.Errorf("query 1: expected queued response, got columns %v", got)
+	}
+
+	// Second call falls back to the single SetRowData default.
+	rows2, err := conn.QueryContext(ctx, "SELECT id FROM t", nil)
+	if err != nil {
+		t.Fatalf("query 2 failed: %v", err)
+	}
+	if got := rows2.Columns(); len(got) != 1 || got[0] != "fallback" {
+		t.Errorf("query 2: expected fallback response, got columns %v", got)
+	}
+}
+
+func TestConn_QueryContext_PushQueryErr(t *testing.T) {
+	capture := &Capture{}
+	config := &Config{}
+	conn := &Conn{capture: capture, config: config}
+	ctx := context.Background()
+
+	testErr := errors.New("second read failed")
+	config.PushRowData(&RowData{Columns: []string{"id"}, Rows: [][]any{{int64(1)}}})
+	config.PushQueryErr(testErr)
+
+	rows1, err := conn.QueryContext(ctx, "SELECT id FROM t", nil)
+	if err != nil {
+		t.Fatalf("query 1 should succeed, got: %v", err)
+	}
+	_ = rows1.Close()
+
+	rows2, err := conn.QueryContext(ctx, "SELECT id FROM t", nil)
+	if rows2 != nil {
+		_ = rows2.Close()
+	}
+	if !errors.Is(err, testErr) {
+		t.Errorf("query 2: expected queued error, got: %v", err)
+	}
+	if len(capture.Queries) != 2 {
+		t.Errorf("expected both queries captured, got %d", len(capture.Queries))
+	}
+}
+
+func TestConn_ExecContext_PushErrAfterSuccess(t *testing.T) {
+	capture := &Capture{}
+	config := &Config{}
+	conn := &Conn{capture: capture, config: config}
+	ctx := context.Background()
+
+	testErr := errors.New("insert conflict")
+	config.PushRowsAffected(1)  // step 1: update succeeds affecting 1 row
+	config.PushExecErr(testErr) // step 2: insert fails
+
+	res, err := conn.ExecContext(ctx, "UPDATE t SET x = 1", nil)
+	if err != nil {
+		t.Fatalf("exec 1 should succeed, got: %v", err)
+	}
+	if n, _ := res.RowsAffected(); n != 1 {
+		t.Errorf("exec 1: expected 1 row affected, got %d", n)
+	}
+
+	_, err = conn.ExecContext(ctx, "INSERT INTO t VALUES (1)", nil)
+	if !errors.Is(err, testErr) {
+		t.Errorf("exec 2: expected queued error, got: %v", err)
+	}
+}
+
+func TestConfig_Reset_ClearsQueues(t *testing.T) {
+	capture := &Capture{}
+	config := &Config{}
+	conn := &Conn{capture: capture, config: config}
+	ctx := context.Background()
+
+	config.PushQueryErr(errors.New("queued"))
+	config.PushExecErr(errors.New("queued"))
+	config.Reset()
+
+	// After reset the queues are empty, so calls hit the (default) success paths.
+	rows, err := conn.QueryContext(ctx, "SELECT 1", nil)
+	if err != nil {
+		t.Errorf("expected query queue cleared, got: %v", err)
+	}
+	if rows != nil {
+		_ = rows.Close()
+	}
+	if _, err := conn.ExecContext(ctx, "DELETE FROM t", nil); err != nil {
+		t.Errorf("expected exec queue cleared, got: %v", err)
+	}
+}
+
 func TestConn_Prepare(t *testing.T) {
 	capture := &Capture{}
 	config := &Config{}

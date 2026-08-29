@@ -22,6 +22,12 @@ func init() {
 }
 
 // Config holds configurable behavior for the mock database.
+//
+// Two layers of configuration exist. The Set* methods define a single global
+// response returned for every query/exec in a run — the default. The Push*
+// methods enqueue per-call responses consumed in order, one per QueryContext or
+// ExecContext, so a multi-query store method can be driven step by step. When a
+// queue is exhausted, behavior falls back to the single Set* configuration.
 type Config struct {
 	mu              sync.Mutex
 	QueryErr        error    // Error to return from QueryContext
@@ -29,6 +35,24 @@ type Config struct {
 	RowsAffected    int64    // Value to return from RowsAffected (default 1)
 	rowsAffectedSet bool     // Whether RowsAffected was explicitly set
 	rowData         *RowData // Configurable row data for queries
+
+	queryQueue []queryResponse // Per-call query responses, consumed in order
+	execQueue  []execResponse  // Per-call exec responses, consumed in order
+}
+
+// queryResponse is a single queued response for a QueryContext call: either rows
+// (possibly nil for empty) or an error.
+type queryResponse struct {
+	rows *RowData
+	err  error
+}
+
+// execResponse is a single queued response for an ExecContext call: an error, or
+// a RowsAffected value.
+type execResponse struct {
+	rowsAffected    int64
+	rowsAffectedSet bool
+	err             error
 }
 
 // SetQueryErr sets the error to return from queries.
@@ -64,6 +88,60 @@ func (c *Config) getRowData() *RowData {
 	return c.rowData
 }
 
+// PushRowData enqueues rows for the next query. Queued responses are consumed in
+// order, one per QueryContext, before falling back to SetRowData.
+func (c *Config) PushRowData(data *RowData) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.queryQueue = append(c.queryQueue, queryResponse{rows: data})
+}
+
+// PushQueryErr enqueues an error for the next query, consumed in order before
+// falling back to SetQueryErr.
+func (c *Config) PushQueryErr(err error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.queryQueue = append(c.queryQueue, queryResponse{err: err})
+}
+
+// PushExecErr enqueues an error for the next exec, consumed in order before
+// falling back to SetExecErr.
+func (c *Config) PushExecErr(err error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.execQueue = append(c.execQueue, execResponse{err: err})
+}
+
+// PushRowsAffected enqueues a RowsAffected value for the next exec, consumed in
+// order before falling back to SetRowsAffected.
+func (c *Config) PushRowsAffected(n int64) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.execQueue = append(c.execQueue, execResponse{rowsAffected: n, rowsAffectedSet: true})
+}
+
+func (c *Config) popQueryResponse() (queryResponse, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if len(c.queryQueue) == 0 {
+		return queryResponse{}, false
+	}
+	r := c.queryQueue[0]
+	c.queryQueue = c.queryQueue[1:]
+	return r, true
+}
+
+func (c *Config) popExecResponse() (execResponse, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if len(c.execQueue) == 0 {
+		return execResponse{}, false
+	}
+	r := c.execQueue[0]
+	c.execQueue = c.execQueue[1:]
+	return r, true
+}
+
 // SetRowsAffected sets the rows affected value to return.
 func (c *Config) SetRowsAffected(n int64) {
 	c.mu.Lock()
@@ -81,6 +159,8 @@ func (c *Config) Reset() {
 	c.RowsAffected = 0
 	c.rowsAffectedSet = false
 	c.rowData = nil
+	c.queryQueue = nil
+	c.execQueue = nil
 }
 
 func (c *Config) getQueryErr() error {
@@ -177,6 +257,15 @@ func (*Conn) Begin() (driver.Tx, error) {
 // QueryContext implements driver.QueryerContext.
 func (c *Conn) QueryContext(_ context.Context, query string, args []driver.NamedValue) (driver.Rows, error) {
 	c.capture.add(query, namedValuesToAny(args))
+	if resp, ok := c.config.popQueryResponse(); ok {
+		if resp.err != nil {
+			return nil, resp.err
+		}
+		if resp.rows != nil {
+			return &DataRows{columns: resp.rows.Columns, rows: resp.rows.Rows}, nil
+		}
+		return &Rows{}, nil
+	}
 	if err := c.config.getQueryErr(); err != nil {
 		return nil, err
 	}
@@ -189,6 +278,15 @@ func (c *Conn) QueryContext(_ context.Context, query string, args []driver.Named
 // ExecContext implements driver.ExecerContext.
 func (c *Conn) ExecContext(_ context.Context, query string, args []driver.NamedValue) (driver.Result, error) {
 	c.capture.add(query, namedValuesToAny(args))
+	if resp, ok := c.config.popExecResponse(); ok {
+		if resp.err != nil {
+			return nil, resp.err
+		}
+		if resp.rowsAffectedSet {
+			return &Result{rowsAffected: resp.rowsAffected}, nil
+		}
+		return &Result{rowsAffected: c.config.getRowsAffected()}, nil
+	}
 	if err := c.config.getExecErr(); err != nil {
 		return nil, err
 	}
