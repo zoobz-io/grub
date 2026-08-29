@@ -35,12 +35,12 @@ type Config = mockdb.Config
 type RowData = mockdb.RowData
 
 // New creates a new mock-backed *sqlx.DB and returns it with the query Capture.
-func New() (*sqlx.DB, *Capture) {
+func New() (db *sqlx.DB, capture *Capture) {
 	return mockdb.New()
 }
 
 // NewWithConfig creates a new mock-backed *sqlx.DB and returns it with the query
 // Capture and a Config for driving rows and error paths.
-func NewWithConfig() (*sqlx.DB, *Capture, *Config) {
+func NewWithConfig() (db *sqlx.DB, capture *Capture, config *Config) {
 	return mockdb.NewWithConfig()
 }
