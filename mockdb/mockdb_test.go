@@ -82,3 +82,42 @@ func TestNewWithConfig_DrivesRowsAndErrors(t *testing.T) {
 		t.Errorf("expected configured row to flow back, got: %+v", got)
 	}
 }
+
+// TestPushRowData_DrivesConsecutiveReads proves per-query responses flow through
+// the public alias: two reads in a run get distinct queued rows, in order —
+// what a downstream multi-query store method needs to be driven step by step.
+func TestPushRowData_DrivesConsecutiveReads(t *testing.T) {
+	mockDB, _, cfg := mockdb.NewWithConfig()
+	db := grub.NewDatabase[User](mockDB, "users", renderer)
+
+	cfg.PushRowData(&mockdb.RowData{
+		Columns: []string{"id", "email", "name"},
+		Rows:    [][]any{{int64(1), "one@example.com", "One"}},
+	})
+	cfg.PushRowData(&mockdb.RowData{
+		Columns: []string{"id", "email", "name"},
+		Rows:    [][]any{{int64(2), "two@example.com", "Two"}},
+	})
+
+	stmt := edamame.NewSelectStatement("by-email", "Find user by email", edamame.SelectSpec{
+		Where: []edamame.ConditionSpec{
+			{Field: "email", Operator: "=", Param: "email"},
+		},
+	})
+
+	first, err := db.ExecSelect(context.Background(), stmt, map[string]any{"email": "one@example.com"})
+	if err != nil {
+		t.Fatalf("first ExecSelect returned error: %v", err)
+	}
+	if first == nil || first.Email != "one@example.com" {
+		t.Errorf("first read: expected queued row 1, got: %+v", first)
+	}
+
+	second, err := db.ExecSelect(context.Background(), stmt, map[string]any{"email": "two@example.com"})
+	if err != nil {
+		t.Fatalf("second ExecSelect returned error: %v", err)
+	}
+	if second == nil || second.Email != "two@example.com" {
+		t.Errorf("second read: expected queued row 2, got: %+v", second)
+	}
+}
