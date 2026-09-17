@@ -63,11 +63,6 @@ func RunBatchTests(t *testing.T, tc *TestContext) {
 	t.Run("ListWithLimit", func(t *testing.T) { testListWithLimit(t, tc) })
 }
 
-// RunAtomicTests runs the atomic index test suite.
-func RunAtomicTests(t *testing.T, tc *TestContext) {
-	t.Run("AtomicGetUpsert", func(t *testing.T) { testAtomicGetUpsert(t, tc) })
-}
-
 // RunFilterTests runs the Filter API test suite.
 // Set supportsFilter to false for providers that return ErrFilterNotSupported (e.g., Pinecone).
 func RunFilterTests(t *testing.T, tc *TestContext, supportsFilter bool) {
@@ -122,7 +117,7 @@ type QueryOperators struct {
 
 // HookedMetadata is a model with lifecycle hooks for integration testing.
 type HookedMetadata struct {
-	Category string `json:"category,omitempty"`
+	Category string  `json:"category,omitempty"`
 	Score    float64 `json:"score,omitempty"`
 
 	afterLoadCalled bool
@@ -605,52 +600,6 @@ func testListWithLimit(t *testing.T, tc *TestContext) {
 
 	if len(ids) != 3 {
 		t.Errorf("expected 3 ids with limit, got %d", len(ids))
-	}
-}
-
-// --- Atomic Tests ---
-
-func testAtomicGetUpsert(t *testing.T, tc *TestContext) {
-	ctx := context.Background()
-	index := grub.NewIndex[TestMetadata](tc.Provider)
-
-	id := testID()
-	metadata := &TestMetadata{Category: "atomic", Tags: []string{"x"}, Score: 42.0}
-	err := index.Upsert(ctx, id, []float32{1.0, 2.0, 3.0}, metadata)
-	if err != nil {
-		t.Fatalf("Upsert failed: %v", err)
-	}
-
-	atomic := index.Atomic()
-	if atomic == nil {
-		t.Fatal("Atomic returned nil")
-	}
-
-	a, err := atomic.Get(ctx, id)
-	if err != nil {
-		t.Fatalf("Atomic().Get failed: %v", err)
-	}
-
-	if a.Metadata.Strings["Category"] != "atomic" {
-		t.Errorf("expected Category 'atomic', got %q", a.Metadata.Strings["Category"])
-	}
-
-	// Modify via atom
-	a.Metadata.Strings["Category"] = "modified"
-
-	err = atomic.Upsert(ctx, id, a.Vector, a.Metadata)
-	if err != nil {
-		t.Fatalf("Atomic().Upsert failed: %v", err)
-	}
-
-	// Verify via typed API
-	got, err := index.Get(ctx, id)
-	if err != nil {
-		t.Fatalf("Get after Atomic().Upsert failed: %v", err)
-	}
-
-	if got.Metadata.Category != "modified" {
-		t.Errorf("expected Category 'modified', got %q", got.Metadata.Category)
 	}
 }
 

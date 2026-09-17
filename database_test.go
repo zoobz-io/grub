@@ -570,23 +570,6 @@ func TestDatabase_ExecAggregateSum(t *testing.T) {
 	}
 }
 
-func TestDatabase_Atomic(t *testing.T) {
-	mockDB, _ := mockdb.New()
-
-	db := NewDatabase[TestDBUser](mockDB, "test_users", testDBRenderer)
-
-	atomic := db.Atomic()
-	if atomic == nil {
-		t.Fatal("Atomic returned nil")
-	}
-
-	// Verify it returns the same instance
-	atomic2 := db.Atomic()
-	if atomic != atomic2 {
-		t.Error("Atomic should return cached instance")
-	}
-}
-
 func intPtr(i int) *int {
 	return &i
 }
@@ -1489,7 +1472,6 @@ func TestDatabaseFromProvider_PanicOnBuilders(t *testing.T) {
 		{"Remove", func() { db.Remove() }},
 		{"Count", func() { db.Count() }},
 		{"Executor", func() { db.Executor() }},
-		{"Atomic", func() { db.Atomic() }},
 	}
 
 	for _, m := range methods {

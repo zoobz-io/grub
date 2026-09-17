@@ -2,20 +2,14 @@ package grub
 
 import (
 	"context"
-	"sync"
 	"time"
-
-	"github.com/zoobz-io/atom"
-	"github.com/zoobz-io/grub/internal/atomix"
 )
 
 // Store provides type-safe key-value storage operations for T.
 // Wraps a StoreProvider, handling serialization of T to/from bytes.
 type Store[T any] struct {
-	provider   StoreProvider
-	codec      Codec
-	atomic     *atomix.Store[T]
-	atomicOnce sync.Once
+	provider StoreProvider
+	codec    Codec
 }
 
 // NewStore creates a Store for type T backed by the given provider.
@@ -133,19 +127,4 @@ func (s *Store[T]) SetBatch(ctx context.Context, items map[string]*T, ttl time.D
 		}
 	}
 	return nil
-}
-
-// Atomic returns an atom-based view of this store.
-// The returned atomix.Store satisfies the AtomicStore interface.
-// The instance is created once and cached for subsequent calls.
-// Panics if T is not atomizable (a programmer error).
-func (s *Store[T]) Atomic() *atomix.Store[T] {
-	s.atomicOnce.Do(func() {
-		atomizer, err := atom.Use[T]()
-		if err != nil {
-			panic("grub: invalid type for atomization: " + err.Error())
-		}
-		s.atomic = atomix.NewStore[T](s.provider, s.codec, atomizer.Spec())
-	})
-	return s.atomic
 }

@@ -51,11 +51,6 @@ func RunContentTypeTest(t *testing.T, tc *TestContext) {
 	testContentType(t, tc)
 }
 
-// RunAtomicTests runs the atomic bucket test suite.
-func RunAtomicTests(t *testing.T, tc *TestContext) {
-	t.Run("AtomicGetPut", func(t *testing.T) { testAtomicGetPut(t, tc) })
-}
-
 // RunListTests runs the list operation test suite.
 func RunListTests(t *testing.T, tc *TestContext) {
 	t.Run("List", func(t *testing.T) { testList(t, tc) })
@@ -406,67 +401,6 @@ func testCustomMetadata(t *testing.T, tc *TestContext) {
 	}
 	if got.Metadata["another"] != "another-value" {
 		t.Errorf("expected another 'another-value', got %q", got.Metadata["another"])
-	}
-}
-
-// --- Atomic Tests ---
-
-func testAtomicGetPut(t *testing.T, tc *TestContext) {
-	ctx := context.Background()
-	bucket := grub.NewBucket[TestPayload](tc.Provider)
-
-	obj := &grub.Object[TestPayload]{
-		Key:         "atomic-key",
-		ContentType: "application/json",
-		Data:        TestPayload{ID: "atomic-1", Name: "Atomic Value", Count: 100},
-	}
-	err := bucket.Put(ctx, obj)
-	if err != nil {
-		t.Fatalf("Put failed: %v", err)
-	}
-
-	atomicObj, err := bucket.Atomic().Get(ctx, "atomic-key")
-	if err != nil {
-		t.Fatalf("Atomic().Get failed: %v", err)
-	}
-
-	// Metadata is preserved as-is
-	if atomicObj.ContentType != "application/json" {
-		t.Errorf("expected ContentType 'application/json', got %q", atomicObj.ContentType)
-	}
-
-	// Payload is atomized - access fields via atom
-	if atomicObj.Data.Strings["Name"] != "Atomic Value" {
-		t.Errorf("expected atom Name 'Atomic Value', got %q", atomicObj.Data.Strings["Name"])
-	}
-	if atomicObj.Data.Ints["Count"] != 100 {
-		t.Errorf("expected atom Count 100, got %d", atomicObj.Data.Ints["Count"])
-	}
-
-	// Modify payload via atom
-	atomicObj.Data.Strings["Name"] = "Modified Atomic"
-	atomicObj.Data.Ints["Count"] = 200
-	// Also modify metadata
-	atomicObj.ContentType = "text/plain"
-
-	err = bucket.Atomic().Put(ctx, "atomic-key", atomicObj)
-	if err != nil {
-		t.Fatalf("Atomic().Put failed: %v", err)
-	}
-
-	got, err := bucket.Get(ctx, "atomic-key")
-	if err != nil {
-		t.Fatalf("Get after Atomic().Put failed: %v", err)
-	}
-
-	if got.ContentType != "text/plain" {
-		t.Errorf("expected ContentType 'text/plain', got %q", got.ContentType)
-	}
-	if got.Data.Name != "Modified Atomic" {
-		t.Errorf("expected Name 'Modified Atomic', got %q", got.Data.Name)
-	}
-	if got.Data.Count != 200 {
-		t.Errorf("expected Count 200, got %d", got.Data.Count)
 	}
 }
 

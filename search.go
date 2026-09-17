@@ -2,10 +2,7 @@ package grub
 
 import (
 	"context"
-	"sync"
 
-	"github.com/zoobz-io/atom"
-	"github.com/zoobz-io/grub/internal/atomix"
 	"github.com/zoobz-io/grub/internal/shared"
 	"github.com/zoobz-io/lucene"
 )
@@ -43,12 +40,10 @@ func (r *SearchResult[T]) Agg(name string) *AggResult {
 // Search provides type-safe search operations for documents of type T.
 // Wraps a SearchProvider, handling serialization of T to/from bytes.
 type Search[T any] struct {
-	provider   SearchProvider
-	index      string
-	codec      Codec
-	builder    *lucene.Builder[T]
-	atomic     *atomix.Search[T]
-	atomicOnce sync.Once
+	provider SearchProvider
+	index    string
+	codec    Codec
+	builder  *lucene.Builder[T]
 }
 
 // NewSearch creates a Search for type T backed by the given provider.
@@ -220,18 +215,4 @@ func (s *Search[T]) Count(ctx context.Context, query lucene.Query) (int64, error
 // Use sparingly as it can impact performance.
 func (s *Search[T]) Refresh(ctx context.Context) error {
 	return s.provider.Refresh(ctx, s.index)
-}
-
-// Atomic returns an atom-based view of this search index.
-// The instance is created once and cached for subsequent calls.
-// Panics if T is not atomizable (a programmer error).
-func (s *Search[T]) Atomic() *atomix.Search[T] {
-	s.atomicOnce.Do(func() {
-		atomizer, err := atom.Use[T]()
-		if err != nil {
-			panic("grub: invalid type for atomization: " + err.Error())
-		}
-		s.atomic = atomix.NewSearch[T](s.provider, s.index, s.codec, atomizer.Spec())
-	})
-	return s.atomic
 }
