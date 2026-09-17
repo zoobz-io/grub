@@ -2,6 +2,7 @@ package grub
 
 import (
 	"context"
+	"io"
 	"sync"
 
 	"github.com/zoobz-io/atom"
@@ -48,12 +49,13 @@ func (b *Bucket[T]) Get(ctx context.Context, key string) (*Object[T], error) {
 		return nil, err
 	}
 	return &Object[T]{
-		Key:         info.Key,
-		ContentType: info.ContentType,
-		Size:        info.Size,
-		ETag:        info.ETag,
-		Metadata:    info.Metadata,
-		Data:        payload,
+		Key:          info.Key,
+		ContentType:  info.ContentType,
+		Size:         info.Size,
+		ETag:         info.ETag,
+		Metadata:     info.Metadata,
+		LastModified: info.LastModified,
+		Data:         payload,
 	}, nil
 }
 
@@ -98,6 +100,40 @@ func (b *Bucket[T]) Exists(ctx context.Context, key string) (bool, error) {
 // Limit of 0 means no limit.
 func (b *Bucket[T]) List(ctx context.Context, prefix string, limit int) ([]ObjectInfo, error) {
 	return b.provider.List(ctx, prefix, limit)
+}
+
+// Stat returns the metadata of the object at key, without transferring the data.
+// Returns ErrNotFound if the key does not exist.
+func (b *Bucket[T]) Stat(ctx context.Context, key string) (*ObjectInfo, error) {
+	return b.provider.Stat(ctx, key)
+}
+
+// ListPage returns one page of object info for keys matching prefix.
+// cursor is an opaque provider-defined token; pass "" for the first page.
+// An empty next cursor means no more pages. Limit of 0 uses the provider default page size.
+func (b *Bucket[T]) ListPage(ctx context.Context, prefix, cursor string, limit int) (infos []ObjectInfo, next string, err error) {
+	return b.provider.ListPage(ctx, prefix, cursor, limit)
+}
+
+// ListLevel returns the objects and common prefixes directly under prefix,
+// where delimiter separates the levels. cursor pages through large levels;
+// pass "" for the first page. Limit of 0 uses the provider default page size.
+func (b *Bucket[T]) ListLevel(ctx context.Context, prefix, delimiter, cursor string, limit int) (*Level, error) {
+	return b.provider.ListLevel(ctx, prefix, delimiter, cursor, limit)
+}
+
+// GetStream returns a reader over the raw object bytes at key.
+// This is raw access: it bypasses the codec and the lifecycle hooks.
+// The caller must close the reader. Returns ErrNotFound if the key does not exist.
+func (b *Bucket[T]) GetStream(ctx context.Context, key string) (io.ReadCloser, *ObjectInfo, error) {
+	return b.provider.GetStream(ctx, key)
+}
+
+// PutStream stores raw data from r at key.
+// This is raw access: it bypasses the codec and the lifecycle hooks.
+// info.Size may be set if known; providers handle unknown-size streams internally.
+func (b *Bucket[T]) PutStream(ctx context.Context, key string, r io.Reader, info *ObjectInfo) error {
+	return b.provider.PutStream(ctx, key, r, info)
 }
 
 // Atomic returns an atom-based view of this bucket.

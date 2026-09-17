@@ -119,3 +119,19 @@ func TestS3_List(t *testing.T) {
 func TestS3_Hooks(t *testing.T) {
 	bucket.RunHookTests(t, tc)
 }
+
+func TestS3_Stat(t *testing.T) {
+	bucket.RunStatTests(t, tc)
+}
+
+func TestS3_Stream(t *testing.T) {
+	bucket.RunStreamTests(t, tc)
+}
+
+func TestS3_Pagination(t *testing.T) {
+	bucket.RunPaginationTests(t, tc)
+}
+
+func TestS3_Hierarchy(t *testing.T) {
+	bucket.RunHierarchyTests(t, tc)
+}

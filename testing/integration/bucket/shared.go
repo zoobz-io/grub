@@ -2,8 +2,10 @@
 package bucket
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"io"
 	"testing"
 
 	"github.com/zoobz-io/grub"
@@ -58,6 +60,29 @@ func RunAtomicTests(t *testing.T, tc *TestContext) {
 func RunListTests(t *testing.T, tc *TestContext) {
 	t.Run("List", func(t *testing.T) { testList(t, tc) })
 	t.Run("ListWithLimit", func(t *testing.T) { testListWithLimit(t, tc) })
+}
+
+// RunStatTests runs the Stat and LastModified test suite.
+func RunStatTests(t *testing.T, tc *TestContext) {
+	t.Run("Stat", func(t *testing.T) { testStat(t, tc) })
+	t.Run("StatNotFound", func(t *testing.T) { testStatNotFound(t, tc) })
+	t.Run("LastModified", func(t *testing.T) { testLastModified(t, tc) })
+}
+
+// RunStreamTests runs the GetStream/PutStream test suite.
+func RunStreamTests(t *testing.T, tc *TestContext) {
+	t.Run("StreamRoundTrip", func(t *testing.T) { testStreamRoundTrip(t, tc) })
+	t.Run("GetStreamNotFound", func(t *testing.T) { testGetStreamNotFound(t, tc) })
+}
+
+// RunPaginationTests runs the ListPage cursor pagination test suite.
+func RunPaginationTests(t *testing.T, tc *TestContext) {
+	t.Run("ListPage", func(t *testing.T) { testListPage(t, tc) })
+}
+
+// RunHierarchyTests runs the ListLevel hierarchy listing test suite.
+func RunHierarchyTests(t *testing.T, tc *TestContext) {
+	t.Run("ListLevel", func(t *testing.T) { testListLevel(t, tc) })
 }
 
 // HookedPayload is a model with lifecycle hooks for integration testing.
@@ -506,5 +531,193 @@ func testListWithLimit(t *testing.T, tc *TestContext) {
 
 	if len(infos) != 3 {
 		t.Errorf("expected 3 objects with limit, got %d", len(infos))
+	}
+}
+
+// --- Stat / LastModified Tests ---
+
+func testStat(t *testing.T, tc *TestContext) {
+	ctx := context.Background()
+	bucket := grub.NewBucket[TestPayload](tc.Provider)
+
+	obj := &grub.Object[TestPayload]{
+		Key:         "stat-key",
+		ContentType: "application/json",
+		Data:        TestPayload{ID: "s", Name: "Stat", Count: 7},
+	}
+	if err := bucket.Put(ctx, obj); err != nil {
+		t.Fatalf("Put failed: %v", err)
+	}
+
+	info, err := bucket.Stat(ctx, "stat-key")
+	if err != nil {
+		t.Fatalf("Stat failed: %v", err)
+	}
+	if info.Key != "stat-key" {
+		t.Errorf("expected key 'stat-key', got %q", info.Key)
+	}
+	if info.Size == 0 {
+		t.Error("expected non-zero size")
+	}
+	if info.LastModified.IsZero() {
+		t.Error("expected non-zero LastModified from Stat")
+	}
+}
+
+func testStatNotFound(t *testing.T, tc *TestContext) {
+	ctx := context.Background()
+	bucket := grub.NewBucket[TestPayload](tc.Provider)
+
+	_, err := bucket.Stat(ctx, "stat-missing-key")
+	if !errors.Is(err, grub.ErrNotFound) {
+		t.Errorf("expected ErrNotFound, got %v", err)
+	}
+}
+
+func testLastModified(t *testing.T, tc *TestContext) {
+	ctx := context.Background()
+	bucket := grub.NewBucket[TestPayload](tc.Provider)
+
+	obj := &grub.Object[TestPayload]{
+		Key:         "lastmod-key",
+		ContentType: "application/json",
+		Data:        TestPayload{ID: "lm", Name: "LastMod", Count: 1},
+	}
+	if err := bucket.Put(ctx, obj); err != nil {
+		t.Fatalf("Put failed: %v", err)
+	}
+
+	got, err := bucket.Get(ctx, "lastmod-key")
+	if err != nil {
+		t.Fatalf("Get failed: %v", err)
+	}
+	if got.LastModified.IsZero() {
+		t.Error("expected non-zero LastModified from Get")
+	}
+
+	infos, err := bucket.List(ctx, "lastmod-key", 0)
+	if err != nil {
+		t.Fatalf("List failed: %v", err)
+	}
+	if len(infos) == 0 {
+		t.Fatal("expected at least one listing")
+	}
+	for _, info := range infos {
+		if info.LastModified.IsZero() {
+			t.Errorf("expected non-zero LastModified from List for %q", info.Key)
+		}
+	}
+}
+
+// --- Stream Tests ---
+
+func testStreamRoundTrip(t *testing.T, tc *TestContext) {
+	ctx := context.Background()
+	bucket := grub.NewBucket[TestPayload](tc.Provider)
+
+	// PutStream/GetStream are raw access: they bypass the codec.
+	payload := []byte("raw stream bytes of unknown length")
+	if err := bucket.PutStream(ctx, "stream-key", bytes.NewReader(payload), &grub.ObjectInfo{Key: "stream-key"}); err != nil {
+		t.Fatalf("PutStream failed: %v", err)
+	}
+
+	r, info, err := bucket.GetStream(ctx, "stream-key")
+	if err != nil {
+		t.Fatalf("GetStream failed: %v", err)
+	}
+	defer func() { _ = r.Close() }()
+	if info.Key != "stream-key" {
+		t.Errorf("expected key 'stream-key', got %q", info.Key)
+	}
+	got, err := io.ReadAll(r)
+	if err != nil {
+		t.Fatalf("ReadAll failed: %v", err)
+	}
+	if !bytes.Equal(got, payload) {
+		t.Errorf("stream round-trip mismatch: got %q, want %q", got, payload)
+	}
+}
+
+func testGetStreamNotFound(t *testing.T, tc *TestContext) {
+	ctx := context.Background()
+	bucket := grub.NewBucket[TestPayload](tc.Provider)
+
+	_, _, err := bucket.GetStream(ctx, "stream-missing-key")
+	if !errors.Is(err, grub.ErrNotFound) {
+		t.Errorf("expected ErrNotFound, got %v", err)
+	}
+}
+
+// --- Pagination Tests ---
+
+func testListPage(t *testing.T, tc *TestContext) {
+	ctx := context.Background()
+	bucket := grub.NewBucket[TestPayload](tc.Provider)
+
+	keys := []string{"pagetest/a", "pagetest/b", "pagetest/c"}
+	for _, k := range keys {
+		obj := &grub.Object[TestPayload]{
+			Key:         k,
+			ContentType: "application/json",
+			Data:        TestPayload{ID: k, Name: "Page", Count: 1},
+		}
+		if err := bucket.Put(ctx, obj); err != nil {
+			t.Fatalf("Put failed: %v", err)
+		}
+	}
+
+	// Limit 1 over 3 keys yields all 3 across pages, then an empty cursor.
+	seen := make(map[string]bool)
+	cursor := ""
+	calls := 0
+	for {
+		infos, next, err := bucket.ListPage(ctx, "pagetest/", cursor, 1)
+		if err != nil {
+			t.Fatalf("ListPage failed: %v", err)
+		}
+		calls++
+		for _, info := range infos {
+			seen[info.Key] = true
+		}
+		if next == "" {
+			break
+		}
+		cursor = next
+		if calls > 10 {
+			t.Fatal("pagination did not terminate")
+		}
+	}
+	if len(seen) != len(keys) {
+		t.Errorf("expected %d unique keys, got %d (%v)", len(keys), len(seen), seen)
+	}
+}
+
+// --- Hierarchy Tests ---
+
+func testListLevel(t *testing.T, tc *TestContext) {
+	ctx := context.Background()
+	bucket := grub.NewBucket[TestPayload](tc.Provider)
+
+	keys := []string{"levels/x", "levels/sub/y", "levels/sub/z"}
+	for _, k := range keys {
+		obj := &grub.Object[TestPayload]{
+			Key:         k,
+			ContentType: "application/json",
+			Data:        TestPayload{ID: k, Name: "Level", Count: 1},
+		}
+		if err := bucket.Put(ctx, obj); err != nil {
+			t.Fatalf("Put failed: %v", err)
+		}
+	}
+
+	level, err := bucket.ListLevel(ctx, "levels/", "/", "", 0)
+	if err != nil {
+		t.Fatalf("ListLevel failed: %v", err)
+	}
+	if len(level.Objects) != 1 || level.Objects[0].Key != "levels/x" {
+		t.Errorf("expected objects [levels/x], got %+v", level.Objects)
+	}
+	if len(level.Prefixes) != 1 || level.Prefixes[0] != "levels/sub/" {
+		t.Errorf("expected prefixes [levels/sub/], got %v", level.Prefixes)
 	}
 }

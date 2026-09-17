@@ -5,6 +5,7 @@ package grub
 
 import (
 	"context"
+	"io"
 	"time"
 
 	"github.com/google/uuid"
@@ -172,6 +173,28 @@ type BucketProvider interface {
 	// List returns object info for keys matching the given prefix.
 	// Limit of 0 means no limit.
 	List(ctx context.Context, prefix string, limit int) ([]ObjectInfo, error)
+
+	// Stat returns the metadata of the object at key, without transferring the data.
+	// Returns ErrNotFound if the key does not exist.
+	Stat(ctx context.Context, key string) (*ObjectInfo, error)
+
+	// ListPage returns one page of object info for keys matching prefix.
+	// cursor is an opaque provider-defined token; pass "" for the first page.
+	// An empty next cursor means no more pages. Limit of 0 uses the provider default page size.
+	ListPage(ctx context.Context, prefix, cursor string, limit int) (infos []ObjectInfo, next string, err error)
+
+	// ListLevel returns the objects and common prefixes directly under prefix,
+	// where delimiter separates the levels. cursor pages through large levels;
+	// pass "" for the first page. Limit of 0 uses the provider default page size.
+	ListLevel(ctx context.Context, prefix, delimiter, cursor string, limit int) (*Level, error)
+
+	// GetStream returns a reader over the object at key, without buffering it.
+	// The caller must close the reader. Returns ErrNotFound if the key does not exist.
+	GetStream(ctx context.Context, key string) (io.ReadCloser, *ObjectInfo, error)
+
+	// PutStream stores data from r at key. info.Size may be set if known;
+	// providers that need a length for unknown-size streams handle it internally.
+	PutStream(ctx context.Context, key string, r io.Reader, info *ObjectInfo) error
 }
 
 // AtomicObject holds blob metadata with an atomized payload.

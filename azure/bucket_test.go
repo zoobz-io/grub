@@ -1,9 +1,11 @@
 package azure
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"testing"
 
@@ -280,6 +282,131 @@ func TestProvider_List(t *testing.T) {
 			t.Errorf("expected 0 infos, got %d", len(infos))
 		}
 	})
+}
+
+func TestProvider_Stat(t *testing.T) {
+	clearContainer(t)
+	ctx := context.Background()
+
+	_ = testProvider.Put(ctx, "stat-key", []byte("stat data"), &grub.ObjectInfo{Key: "stat-key", ContentType: "text/plain"})
+
+	t.Run("existing key", func(t *testing.T) {
+		info, err := testProvider.Stat(ctx, "stat-key")
+		if err != nil {
+			t.Fatalf("Stat failed: %v", err)
+		}
+		if info.Size != int64(len("stat data")) {
+			t.Errorf("unexpected size: %d", info.Size)
+		}
+		if info.LastModified.IsZero() {
+			t.Error("expected non-zero LastModified")
+		}
+	})
+
+	t.Run("missing key", func(t *testing.T) {
+		_, err := testProvider.Stat(ctx, "nonexistent")
+		if !errors.Is(err, grub.ErrNotFound) {
+			t.Errorf("expected ErrNotFound, got %v", err)
+		}
+	})
+}
+
+func TestProvider_Stream(t *testing.T) {
+	clearContainer(t)
+	ctx := context.Background()
+
+	payload := []byte("streaming payload of unknown length")
+
+	t.Run("put unknown length and get", func(t *testing.T) {
+		err := testProvider.PutStream(ctx, "stream-key", bytes.NewReader(payload), &grub.ObjectInfo{Key: "stream-key"})
+		if err != nil {
+			t.Fatalf("PutStream failed: %v", err)
+		}
+
+		r, info, err := testProvider.GetStream(ctx, "stream-key")
+		if err != nil {
+			t.Fatalf("GetStream failed: %v", err)
+		}
+		defer func() { _ = r.Close() }()
+		if info.LastModified.IsZero() {
+			t.Error("expected non-zero LastModified")
+		}
+		got, err := io.ReadAll(r)
+		if err != nil {
+			t.Fatalf("ReadAll failed: %v", err)
+		}
+		if !bytes.Equal(got, payload) {
+			t.Errorf("stream mismatch: got %q", got)
+		}
+
+		direct, _, err := testProvider.Get(ctx, "stream-key")
+		if err != nil {
+			t.Fatalf("Get failed: %v", err)
+		}
+		if !bytes.Equal(direct, payload) {
+			t.Errorf("Get mismatch: got %q", direct)
+		}
+	})
+
+	t.Run("missing key", func(t *testing.T) {
+		_, _, err := testProvider.GetStream(ctx, "nope")
+		if !errors.Is(err, grub.ErrNotFound) {
+			t.Errorf("expected ErrNotFound, got %v", err)
+		}
+	})
+}
+
+func TestProvider_ListPage(t *testing.T) {
+	clearContainer(t)
+	ctx := context.Background()
+
+	for _, k := range []string{"page/a", "page/b", "page/c"} {
+		_ = testProvider.Put(ctx, k, []byte("x"), nil)
+	}
+
+	var got []string
+	cursor := ""
+	calls := 0
+	for {
+		infos, next, err := testProvider.ListPage(ctx, "page/", cursor, 1)
+		if err != nil {
+			t.Fatalf("ListPage failed: %v", err)
+		}
+		calls++
+		for _, info := range infos {
+			got = append(got, info.Key)
+		}
+		if next == "" {
+			break
+		}
+		cursor = next
+		if calls > 10 {
+			t.Fatal("pagination did not terminate")
+		}
+	}
+	if len(got) != 3 {
+		t.Errorf("expected 3 keys across pages, got %d (%v)", len(got), got)
+	}
+}
+
+func TestProvider_ListLevel(t *testing.T) {
+	clearContainer(t)
+	ctx := context.Background()
+
+	for _, k := range []string{"a/x", "a/b/y", "a/b/z"} {
+		_ = testProvider.Put(ctx, k, []byte("x"), nil)
+	}
+
+	level, err := testProvider.ListLevel(ctx, "a/", "/", "", 0)
+	if err != nil {
+		t.Fatalf("ListLevel failed: %v", err)
+	}
+	if len(level.Objects) != 1 || level.Objects[0].Key != "a/x" {
+		t.Errorf("expected objects [a/x], got %+v", level.Objects)
+	}
+	if len(level.Prefixes) != 1 || level.Prefixes[0] != "a/b/" {
+		t.Errorf("expected prefixes [a/b/], got %v", level.Prefixes)
+	}
 }
 
 func TestProvider_RoundTrip(t *testing.T) {
