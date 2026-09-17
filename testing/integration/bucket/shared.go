@@ -83,6 +83,8 @@ func RunPaginationTests(t *testing.T, tc *TestContext) {
 // RunHierarchyTests runs the ListLevel hierarchy listing test suite.
 func RunHierarchyTests(t *testing.T, tc *TestContext) {
 	t.Run("ListLevel", func(t *testing.T) { testListLevel(t, tc) })
+	t.Run("ListLevelPaged", func(t *testing.T) { testListLevelPaged(t, tc) })
+	t.Run("ListLevelDelimiter", func(t *testing.T) { testListLevelDelimiter(t, tc) })
 }
 
 // HookedPayload is a model with lifecycle hooks for integration testing.
@@ -719,5 +721,91 @@ func testListLevel(t *testing.T, tc *TestContext) {
 	}
 	if len(level.Prefixes) != 1 || level.Prefixes[0] != "levels/sub/" {
 		t.Errorf("expected prefixes [levels/sub/], got %v", level.Prefixes)
+	}
+}
+
+// testListLevelPaged verifies that ListLevel pages common prefixes correctly
+// when the limit is smaller than the number of prefixes — the cursor must not
+// re-emit a prefix already seen on an earlier page.
+func testListLevelPaged(t *testing.T, tc *TestContext) {
+	ctx := context.Background()
+	bucket := grub.NewBucket[TestPayload](tc.Provider)
+
+	// Three distinct sub-prefixes under "paged/": p1/, p2/, p3/.
+	keys := []string{"paged/p1/a", "paged/p2/b", "paged/p3/c"}
+	for _, k := range keys {
+		obj := &grub.Object[TestPayload]{
+			Key:         k,
+			ContentType: "application/json",
+			Data:        TestPayload{ID: k, Name: "Paged", Count: 1},
+		}
+		if err := bucket.Put(ctx, obj); err != nil {
+			t.Fatalf("Put failed: %v", err)
+		}
+	}
+
+	want := map[string]bool{"paged/p1/": false, "paged/p2/": false, "paged/p3/": false}
+	seen := make(map[string]int)
+	cursor := ""
+	calls := 0
+	for {
+		level, err := bucket.ListLevel(ctx, "paged/", "/", cursor, 1)
+		if err != nil {
+			t.Fatalf("ListLevel failed: %v", err)
+		}
+		calls++
+		for _, p := range level.Prefixes {
+			seen[p]++
+		}
+		if level.Next == "" {
+			break
+		}
+		cursor = level.Next
+		if calls > 10 {
+			t.Fatal("hierarchy pagination did not terminate")
+		}
+	}
+
+	for p := range want {
+		if seen[p] == 0 {
+			t.Errorf("prefix %q never returned", p)
+		}
+		if seen[p] > 1 {
+			t.Errorf("prefix %q returned %d times (duplicated across pages)", p, seen[p])
+		}
+	}
+	if len(seen) != len(want) {
+		t.Errorf("expected prefixes %v, got %v", want, seen)
+	}
+}
+
+// testListLevelDelimiter verifies that ListLevel honors a non-"/" delimiter.
+func testListLevelDelimiter(t *testing.T, tc *TestContext) {
+	ctx := context.Background()
+	bucket := grub.NewBucket[TestPayload](tc.Provider)
+
+	// Under prefix "dash-": "dash-file" is a leaf; "dash-sub-y"/"dash-sub-z"
+	// collapse into the common prefix "dash-sub-".
+	keys := []string{"dash-file", "dash-sub-y", "dash-sub-z"}
+	for _, k := range keys {
+		obj := &grub.Object[TestPayload]{
+			Key:         k,
+			ContentType: "application/json",
+			Data:        TestPayload{ID: k, Name: "Dash", Count: 1},
+		}
+		if err := bucket.Put(ctx, obj); err != nil {
+			t.Fatalf("Put failed: %v", err)
+		}
+	}
+
+	level, err := bucket.ListLevel(ctx, "dash-", "-", "", 0)
+	if err != nil {
+		t.Fatalf("ListLevel failed: %v", err)
+	}
+	if len(level.Objects) != 1 || level.Objects[0].Key != "dash-file" {
+		t.Errorf("expected objects [dash-file], got %+v", level.Objects)
+	}
+	if len(level.Prefixes) != 1 || level.Prefixes[0] != "dash-sub-" {
+		t.Errorf("expected prefixes [dash-sub-], got %v", level.Prefixes)
 	}
 }

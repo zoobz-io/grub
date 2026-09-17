@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"strings"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/zoobz-io/grub"
@@ -174,10 +173,12 @@ func (p *Provider) List(ctx context.Context, prefix string, limit int) ([]grub.O
 // ListPage returns one page of object info for keys matching prefix.
 // The cursor is the last key returned by the previous page (minio StartAfter).
 func (p *Provider) ListPage(ctx context.Context, prefix, cursor string, limit int) ([]grub.ObjectInfo, string, error) {
-	pageSize := limit
-	if pageSize <= 0 {
-		pageSize = defaultPageSize
-	}
+	size := pageSize(limit)
+
+	// The listing goroutine blocks on the channel until it is drained; cancel it
+	// when we stop early so it does not leak.
+	listCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	opts := minio.ListObjectsOptions{
 		Prefix:     prefix,
@@ -187,12 +188,12 @@ func (p *Provider) ListPage(ctx context.Context, prefix, cursor string, limit in
 
 	var results []grub.ObjectInfo
 	var next string
-	for obj := range p.client.ListObjects(ctx, p.bucket, opts) {
+	for obj := range p.client.ListObjects(listCtx, p.bucket, opts) {
 		if obj.Err != nil {
 			return nil, "", obj.Err
 		}
 		results = append(results, listEntryToInfo(obj))
-		if len(results) >= pageSize {
+		if len(results) >= size {
 			next = obj.Key
 			break
 		}
@@ -201,40 +202,42 @@ func (p *Provider) ListPage(ctx context.Context, prefix, cursor string, limit in
 	return results, next, nil
 }
 
-// ListLevel returns the objects and common prefixes directly under prefix.
-// minio groups on the "/" delimiter when Recursive is false; a listing entry
-// whose key ends with the delimiter is a common prefix.
-func (p *Provider) ListLevel(ctx context.Context, prefix, delimiter, cursor string, limit int) (*grub.Level, error) {
-	pageSize := limit
-	if pageSize <= 0 {
-		pageSize = defaultPageSize
-	}
-
-	opts := minio.ListObjectsOptions{
-		Prefix:     prefix,
-		Recursive:  false,
-		StartAfter: cursor,
+// ListLevel returns the objects and common prefixes directly under prefix,
+// grouping on delimiter. It uses the Core client's ListObjectsV2, which honors
+// an arbitrary delimiter and paginates prefix groups with a real continuation
+// token — the streaming ListObjects API groups only on "/" and hides the token.
+// minio-go's Core list API is synchronous and does not accept a context.
+func (p *Provider) ListLevel(_ context.Context, prefix, delimiter, cursor string, limit int) (*grub.Level, error) {
+	res, err := p.core().ListObjectsV2(p.bucket, prefix, "", cursor, delimiter, pageSize(limit))
+	if err != nil {
+		return nil, err
 	}
 
 	level := &grub.Level{}
-	count := 0
-	for obj := range p.client.ListObjects(ctx, p.bucket, opts) {
-		if obj.Err != nil {
-			return nil, obj.Err
-		}
-		if delimiter != "" && strings.HasSuffix(obj.Key, delimiter) {
-			level.Prefixes = append(level.Prefixes, obj.Key)
-		} else {
-			level.Objects = append(level.Objects, listEntryToInfo(obj))
-		}
-		count++
-		if count >= pageSize {
-			level.Next = obj.Key
-			break
-		}
+	for _, obj := range res.Contents {
+		level.Objects = append(level.Objects, listEntryToInfo(obj))
+	}
+	for _, cp := range res.CommonPrefixes {
+		level.Prefixes = append(level.Prefixes, cp.Prefix)
+	}
+	if res.IsTruncated {
+		level.Next = res.NextContinuationToken
 	}
 
 	return level, nil
+}
+
+// core returns a Core view of the client for low-level list operations.
+func (p *Provider) core() *minio.Core {
+	return &minio.Core{Client: p.client}
+}
+
+// pageSize resolves a caller limit to a concrete page size.
+func pageSize(limit int) int {
+	if limit <= 0 {
+		return defaultPageSize
+	}
+	return limit
 }
 
 // listEntryToInfo converts a minio listing entry into a grub.ObjectInfo.

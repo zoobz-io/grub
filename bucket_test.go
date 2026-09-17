@@ -76,14 +76,11 @@ func (m *mockBucketProvider) List(_ context.Context, prefix string, limit int) (
 	if m.listErr != nil {
 		return nil, m.listErr
 	}
-	var results []ObjectInfo
-	for _, info := range m.sortedInfos(prefix) {
-		results = append(results, info)
-		if limit > 0 && len(results) >= limit {
-			break
-		}
+	infos := m.sortedInfos(prefix)
+	if limit > 0 && limit < len(infos) {
+		infos = infos[:limit]
 	}
-	return results, nil
+	return infos, nil
 }
 
 // sortedInfos returns infos for keys matching prefix, ordered by key.
@@ -116,7 +113,7 @@ func (m *mockBucketProvider) Stat(_ context.Context, key string) (*ObjectInfo, e
 	return &ObjectInfo{Key: key}, nil
 }
 
-func (m *mockBucketProvider) ListPage(_ context.Context, prefix, cursor string, limit int) ([]ObjectInfo, string, error) {
+func (m *mockBucketProvider) ListPage(_ context.Context, prefix, cursor string, limit int) (infos []ObjectInfo, next string, err error) {
 	if m.listErr != nil {
 		return nil, "", m.listErr
 	}
@@ -125,22 +122,21 @@ func (m *mockBucketProvider) ListPage(_ context.Context, prefix, cursor string, 
 	if pageSize <= 0 {
 		pageSize = len(all)
 	}
-	var results []ObjectInfo
-	var next string
+	infos = make([]ObjectInfo, 0, pageSize)
 	for _, info := range all {
 		if cursor != "" && info.Key <= cursor {
 			continue
 		}
-		results = append(results, info)
-		if len(results) >= pageSize {
+		infos = append(infos, info)
+		if len(infos) >= pageSize {
 			next = info.Key
 			break
 		}
 	}
-	return results, next, nil
+	return infos, next, nil
 }
 
-func (m *mockBucketProvider) ListLevel(_ context.Context, prefix, delimiter, cursor string, limit int) (*Level, error) {
+func (m *mockBucketProvider) ListLevel(_ context.Context, prefix, delimiter, _ string, _ int) (*Level, error) {
 	if m.listErr != nil {
 		return nil, m.listErr
 	}
@@ -619,7 +615,7 @@ func TestBucket_Stream(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ReadAll failed: %v", err)
 	}
-	if string(got) != string(payload) {
+	if !bytes.Equal(got, payload) {
 		t.Errorf("stream roundtrip mismatch: got %q, want %q", got, payload)
 	}
 
