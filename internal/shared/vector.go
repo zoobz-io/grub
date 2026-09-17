@@ -3,7 +3,6 @@ package shared //nolint:revive // internal shared package is intentional
 
 import (
 	"github.com/google/uuid"
-	"github.com/zoobz-io/atom"
 )
 
 // VectorInfo holds provider-level metadata for vector storage.
@@ -48,13 +47,4 @@ type VectorResult struct {
 	Vector   []float32
 	Metadata []byte
 	Score    float32
-}
-
-// AtomicVector holds vector data with an atomized metadata payload.
-// Used by AtomicIndex for type-agnostic access to vector data.
-type AtomicVector struct {
-	ID       uuid.UUID
-	Vector   []float32
-	Score    float32
-	Metadata *atom.Atom
 }

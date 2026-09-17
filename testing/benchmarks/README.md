@@ -50,7 +50,6 @@ Benchmarks use an in-memory mock provider to isolate grub overhead from provider
 
 - Codec serialization/deserialization
 - Type-safe wrapper overhead
-- Atom conversion (for atomic views)
 
 To benchmark actual provider performance, run integration tests with timing or create provider-specific benchmarks.
 

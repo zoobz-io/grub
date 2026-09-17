@@ -2,21 +2,16 @@ package grub
 
 import (
 	"context"
-	"sync"
 
 	"github.com/google/uuid"
-	"github.com/zoobz-io/atom"
-	"github.com/zoobz-io/grub/internal/atomix"
 	"github.com/zoobz-io/vecna"
 )
 
 // Index provides type-safe vector storage operations with metadata of type T.
 // Wraps a VectorProvider, handling serialization of T to/from map[string]any.
 type Index[T any] struct {
-	provider   VectorProvider
-	codec      Codec
-	atomic     *atomix.Index[T]
-	atomicOnce sync.Once
+	provider VectorProvider
+	codec    Codec
 }
 
 // NewIndex creates an Index for metadata type T backed by the given provider.
@@ -225,21 +220,6 @@ func (i *Index[T]) List(ctx context.Context, limit int) ([]uuid.UUID, error) {
 // Exists checks whether a vector ID exists.
 func (i *Index[T]) Exists(ctx context.Context, id uuid.UUID) (bool, error) {
 	return i.provider.Exists(ctx, id)
-}
-
-// Atomic returns an atom-based view of this index.
-// The returned atomix.Index satisfies the AtomicIndex interface.
-// The instance is created once and cached for subsequent calls.
-// Panics if T is not atomizable (a programmer error).
-func (i *Index[T]) Atomic() *atomix.Index[T] {
-	i.atomicOnce.Do(func() {
-		atomizer, err := atom.Use[T]()
-		if err != nil {
-			panic("grub: invalid type for atomization: " + err.Error())
-		}
-		i.atomic = atomix.NewIndex[T](i.provider, i.codec, atomizer.Spec())
-	})
-	return i.atomic
 }
 
 // encodeMetadata converts typed metadata to bytes via codec.

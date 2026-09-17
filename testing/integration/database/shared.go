@@ -8,7 +8,6 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/zoobz-io/astql"
-	"github.com/zoobz-io/atom"
 	"github.com/zoobz-io/edamame"
 	"github.com/zoobz-io/grub"
 	"github.com/zoobz-io/sentinel"
@@ -67,10 +66,8 @@ func (tc *TestContext) InsertUser(t *testing.T, id int, email, name string, age 
 // RunCRUDTests runs the core CRUD test suite against the given context.
 func RunCRUDTests(t *testing.T, tc *TestContext) {
 	t.Run("Get", func(t *testing.T) { testGet(t, tc) })
-	t.Run("GetAtom", func(t *testing.T) { testGetAtom(t, tc) })
 	t.Run("Set", func(t *testing.T) { testSet(t, tc) })
 	t.Run("SetUpdate", func(t *testing.T) { testSetUpdate(t, tc) })
-	t.Run("SetAtom", func(t *testing.T) { testSetAtom(t, tc) })
 	t.Run("Delete", func(t *testing.T) { testDelete(t, tc) })
 	t.Run("DeleteNotFound", func(t *testing.T) { testDeleteNotFound(t, tc) })
 }
@@ -79,9 +76,7 @@ func RunCRUDTests(t *testing.T, tc *TestContext) {
 func RunQueryTests(t *testing.T, tc *TestContext) {
 	t.Run("Query", func(t *testing.T) { testQuery(t, tc) })
 	t.Run("QueryWithStatement", func(t *testing.T) { testQueryWithStatement(t, tc) })
-	t.Run("QueryAtom", func(t *testing.T) { testQueryAtom(t, tc) })
 	t.Run("Select", func(t *testing.T) { testSelect(t, tc) })
-	t.Run("SelectAtom", func(t *testing.T) { testSelectAtom(t, tc) })
 	t.Run("Update", func(t *testing.T) { testUpdate(t, tc) })
 	t.Run("Aggregate", func(t *testing.T) { testAggregate(t, tc) })
 	t.Run("AggregateSum", func(t *testing.T) { testAggregateSum(t, tc) })
@@ -267,33 +262,6 @@ func testGet(t *testing.T, tc *TestContext) {
 	}
 }
 
-func testGetAtom(t *testing.T, tc *TestContext) {
-	tc.Reset(t)
-	ctx := context.Background()
-
-	_, err := tc.DB.Exec(`INSERT INTO test_users (email, name, age) VALUES ('atom@example.com', 'Atom User', 30)`)
-	if err != nil {
-		t.Fatalf("failed to insert test record: %v", err)
-	}
-
-	db := grub.NewDatabase[TestUser](tc.DB, "test_users", tc.Renderer)
-
-	a, err := db.Atomic().Get(ctx, "1")
-	if err != nil {
-		t.Fatalf("Atomic().Get failed: %v", err)
-	}
-
-	if a.Strings["Email"] != "atom@example.com" {
-		t.Errorf("expected atom email 'atom@example.com', got %q", a.Strings["Email"])
-	}
-	if a.Strings["Name"] != "Atom User" {
-		t.Errorf("expected atom name 'Atom User', got %q", a.Strings["Name"])
-	}
-	if a.IntPtrs["Age"] == nil || *a.IntPtrs["Age"] != 30 {
-		t.Errorf("expected atom age 30, got %v", a.IntPtrs["Age"])
-	}
-}
-
 func testSet(t *testing.T, tc *TestContext) {
 	tc.Reset(t)
 	ctx := context.Background()
@@ -359,41 +327,6 @@ func testSetUpdate(t *testing.T, tc *TestContext) {
 	}
 	if got.Age == nil || *got.Age != 40 {
 		t.Errorf("expected age 40, got %v", got.Age)
-	}
-}
-
-func testSetAtom(t *testing.T, tc *TestContext) {
-	tc.Reset(t)
-	ctx := context.Background()
-
-	db := grub.NewDatabase[TestUser](tc.DB, "test_users", tc.Renderer)
-
-	a := &atom.Atom{
-		Ints:    map[string]int64{"ID": 1},
-		Strings: map[string]string{"Email": "atom-set@example.com", "Name": "Atom Set User"},
-		IntPtrs: map[string]*int64{},
-	}
-	age := int64(50)
-	a.IntPtrs["Age"] = &age
-
-	err := db.Atomic().Set(ctx, "1", a)
-	if err != nil {
-		t.Fatalf("Atomic().Set failed: %v", err)
-	}
-
-	got, err := db.Get(ctx, "1")
-	if err != nil {
-		t.Fatalf("Get after SetAtom failed: %v", err)
-	}
-
-	if got.Email != "atom-set@example.com" {
-		t.Errorf("expected email 'atom-set@example.com', got %q", got.Email)
-	}
-	if got.Name != "Atom Set User" {
-		t.Errorf("expected name 'Atom Set User', got %q", got.Name)
-	}
-	if got.Age == nil || *got.Age != 50 {
-		t.Errorf("expected age 50, got %v", got.Age)
 	}
 }
 
@@ -498,39 +431,6 @@ func testQueryWithStatement(t *testing.T, tc *TestContext) {
 	}
 }
 
-func testQueryAtom(t *testing.T, tc *TestContext) {
-	tc.Reset(t)
-	ctx := context.Background()
-
-	_, err := tc.DB.Exec(`
-		INSERT INTO test_users (email, name, age) VALUES
-		('alice@example.com', 'Alice', 25),
-		('bob@example.com', 'Bob', 30)
-	`)
-	if err != nil {
-		t.Fatalf("failed to insert test records: %v", err)
-	}
-
-	db := grub.NewDatabase[TestUser](tc.DB, "test_users", tc.Renderer)
-
-	atoms, err := db.Atomic().ExecQuery(ctx, grub.QueryAll, nil)
-	if err != nil {
-		t.Fatalf("Atomic().Query failed: %v", err)
-	}
-
-	if len(atoms) != 2 {
-		t.Errorf("expected 2 atoms, got %d", len(atoms))
-	}
-
-	names := make(map[string]bool)
-	for _, a := range atoms {
-		names[a.Strings["Name"]] = true
-	}
-	if !names["Alice"] || !names["Bob"] {
-		t.Errorf("expected Alice and Bob in results, got %v", names)
-	}
-}
-
 func testSelect(t *testing.T, tc *TestContext) {
 	tc.Reset(t)
 	ctx := context.Background()
@@ -562,36 +462,6 @@ func testSelect(t *testing.T, tc *TestContext) {
 	}
 	if user.Age == nil || *user.Age != 30 {
 		t.Errorf("expected age 30, got %v", user.Age)
-	}
-}
-
-func testSelectAtom(t *testing.T, tc *TestContext) {
-	tc.Reset(t)
-	ctx := context.Background()
-
-	_, err := tc.DB.Exec(`INSERT INTO test_users (email, name, age) VALUES ('carol@example.com', 'Carol', 35)`)
-	if err != nil {
-		t.Fatalf("failed to insert test record: %v", err)
-	}
-
-	db := grub.NewDatabase[TestUser](tc.DB, "test_users", tc.Renderer)
-
-	stmt := edamame.NewSelectStatement("by-name", "Find user by name", edamame.SelectSpec{
-		Where: []edamame.ConditionSpec{
-			{Field: "name", Operator: "=", Param: "name"},
-		},
-	})
-
-	a, err := db.Atomic().ExecSelect(ctx, stmt, map[string]any{"name": "Carol"})
-	if err != nil {
-		t.Fatalf("Atomic().Select failed: %v", err)
-	}
-
-	if a.Strings["Name"] != "Carol" {
-		t.Errorf("expected name 'Carol', got %q", a.Strings["Name"])
-	}
-	if a.IntPtrs["Age"] == nil || *a.IntPtrs["Age"] != 35 {
-		t.Errorf("expected age 35, got %v", a.IntPtrs["Age"])
 	}
 }
 

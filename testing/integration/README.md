@@ -59,7 +59,6 @@ func TestMyProvider(t *testing.T) {
     kv.RunCRUDTests(t, tc)    // Get, Set, Delete, Exists
     kv.RunTTLTests(t, tc)     // TTL expiration
     kv.RunBatchTests(t, tc)   // List, GetBatch, SetBatch
-    kv.RunAtomicTests(t, tc)  // Atomic view operations
 }
 ```
 

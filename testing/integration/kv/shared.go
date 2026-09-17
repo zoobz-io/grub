@@ -39,11 +39,6 @@ func RunCRUDTests(t *testing.T, tc *TestContext) {
 	t.Run("ExistsNotFound", func(t *testing.T) { testExistsNotFound(t, tc) })
 }
 
-// RunAtomicTests runs the atomic store test suite.
-func RunAtomicTests(t *testing.T, tc *TestContext) {
-	t.Run("AtomicGetSet", func(t *testing.T) { testAtomicGetSet(t, tc) })
-}
-
 // RunTTLTests runs TTL-specific tests (skip for providers that don't support TTL).
 func RunTTLTests(t *testing.T, tc *TestContext) {
 	t.Run("TTLExpiration", func(t *testing.T) { testTTLExpiration(t, tc) })
@@ -306,52 +301,6 @@ func testExistsNotFound(t *testing.T, tc *TestContext) {
 	}
 	if exists {
 		t.Error("expected key to not exist")
-	}
-}
-
-// --- Atomic Tests ---
-
-func testAtomicGetSet(t *testing.T, tc *TestContext) {
-	ctx := context.Background()
-	store := grub.NewStore[TestValue](tc.Provider)
-
-	value := &TestValue{ID: "atomic-1", Name: "Atomic Value", Count: 100}
-	err := store.Set(ctx, "atomic-key", value, 0)
-	if err != nil {
-		t.Fatalf("Set failed: %v", err)
-	}
-
-	a, err := store.Atomic().Get(ctx, "atomic-key")
-	if err != nil {
-		t.Fatalf("Atomic().Get failed: %v", err)
-	}
-
-	if a.Strings["Name"] != "Atomic Value" {
-		t.Errorf("expected atom Name 'Atomic Value', got %q", a.Strings["Name"])
-	}
-	if a.Ints["Count"] != 100 {
-		t.Errorf("expected atom Count 100, got %d", a.Ints["Count"])
-	}
-
-	// Modify via atom
-	a.Strings["Name"] = "Modified Atomic"
-	a.Ints["Count"] = 200
-
-	err = store.Atomic().Set(ctx, "atomic-key", a, 0)
-	if err != nil {
-		t.Fatalf("Atomic().Set failed: %v", err)
-	}
-
-	got, err := store.Get(ctx, "atomic-key")
-	if err != nil {
-		t.Fatalf("Get after Atomic().Set failed: %v", err)
-	}
-
-	if got.Name != "Modified Atomic" {
-		t.Errorf("expected Name 'Modified Atomic', got %q", got.Name)
-	}
-	if got.Count != 200 {
-		t.Errorf("expected Count 200, got %d", got.Count)
 	}
 }
 

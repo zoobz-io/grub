@@ -12,8 +12,8 @@ import (
 	"github.com/weaviate/weaviate-go-client/v5/weaviate"
 	"github.com/weaviate/weaviate-go-client/v5/weaviate/grpc"
 	"github.com/weaviate/weaviate/entities/models"
-	grubweaviate "github.com/zoobz-io/grub/weaviate"
 	"github.com/zoobz-io/grub/testing/integration/vector"
+	grubweaviate "github.com/zoobz-io/grub/weaviate"
 )
 
 var tc *vector.TestContext
@@ -130,10 +130,6 @@ func TestWeaviate_Search(t *testing.T) {
 
 func TestWeaviate_Batch(t *testing.T) {
 	vector.RunBatchTests(t, tc)
-}
-
-func TestWeaviate_Atomic(t *testing.T) {
-	vector.RunAtomicTests(t, tc)
 }
 
 func TestWeaviate_Query(t *testing.T) {

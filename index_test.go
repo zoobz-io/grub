@@ -874,35 +874,3 @@ func TestIndex_EncodeFilterDecodeError(t *testing.T) {
 		t.Error("expected decode error in encodeFilter")
 	}
 }
-
-func TestIndex_Atomic(t *testing.T) {
-	provider := newMockVectorProvider()
-	index := NewIndex[testMetadata](provider)
-	ctx := context.Background()
-
-	id := uuid.New()
-	provider.vectors[id] = vectorEntry{
-		vector:   []float32{1.0, 2.0},
-		metadata: []byte(`{"category": "atomic", "score": 99}`),
-	}
-
-	atomic := index.Atomic()
-	if atomic == nil {
-		t.Fatal("Atomic returned nil")
-	}
-
-	// Verify it returns the same instance
-	atomic2 := index.Atomic()
-	if atomic != atomic2 {
-		t.Error("Atomic should return cached instance")
-	}
-
-	// Test that atomic view works
-	a, err := atomic.Get(ctx, id)
-	if err != nil {
-		t.Fatalf("Atomic Get failed: %v", err)
-	}
-	if a.Metadata.Strings["Category"] != "atomic" {
-		t.Errorf("unexpected Category: %q", a.Metadata.Strings["Category"])
-	}
-}
