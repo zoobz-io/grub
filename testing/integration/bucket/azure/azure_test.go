@@ -124,3 +124,19 @@ func TestAzure_List(t *testing.T) {
 func TestAzure_Hooks(t *testing.T) {
 	bucket.RunHookTests(t, tc)
 }
+
+func TestAzure_Stat(t *testing.T) {
+	bucket.RunStatTests(t, tc)
+}
+
+func TestAzure_Stream(t *testing.T) {
+	bucket.RunStreamTests(t, tc)
+}
+
+func TestAzure_Pagination(t *testing.T) {
+	bucket.RunPaginationTests(t, tc)
+}
+
+func TestAzure_Hierarchy(t *testing.T) {
+	bucket.RunHierarchyTests(t, tc)
+}

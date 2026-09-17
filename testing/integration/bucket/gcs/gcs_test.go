@@ -104,3 +104,19 @@ func TestGCS_List(t *testing.T) {
 func TestGCS_Hooks(t *testing.T) {
 	bucket.RunHookTests(t, tc)
 }
+
+func TestGCS_Stat(t *testing.T) {
+	bucket.RunStatTests(t, tc)
+}
+
+func TestGCS_Stream(t *testing.T) {
+	bucket.RunStreamTests(t, tc)
+}
+
+func TestGCS_Pagination(t *testing.T) {
+	bucket.RunPaginationTests(t, tc)
+}
+
+func TestGCS_Hierarchy(t *testing.T) {
+	bucket.RunHierarchyTests(t, tc)
+}

@@ -1,9 +1,13 @@
 package grub
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"io"
+	"sort"
 	"testing"
+	"time"
 )
 
 // mockBucketProvider implements BucketProvider for testing.
@@ -72,20 +76,100 @@ func (m *mockBucketProvider) List(_ context.Context, prefix string, limit int) (
 	if m.listErr != nil {
 		return nil, m.listErr
 	}
+	infos := m.sortedInfos(prefix)
+	if limit > 0 && limit < len(infos) {
+		infos = infos[:limit]
+	}
+	return infos, nil
+}
+
+// sortedInfos returns infos for keys matching prefix, ordered by key.
+func (m *mockBucketProvider) sortedInfos(prefix string) []ObjectInfo {
 	var results []ObjectInfo
 	for k, info := range m.info {
-		if prefix == "" || (len(k) >= len(prefix) && k[:len(prefix)] == prefix) {
-			if info != nil {
-				results = append(results, *info)
-			} else {
-				results = append(results, ObjectInfo{Key: k})
-			}
-			if limit > 0 && len(results) >= limit {
-				break
-			}
+		if prefix != "" && (len(k) < len(prefix) || k[:len(prefix)] != prefix) {
+			continue
+		}
+		if info != nil {
+			results = append(results, *info)
+		} else {
+			results = append(results, ObjectInfo{Key: k})
 		}
 	}
-	return results, nil
+	sort.Slice(results, func(i, j int) bool { return results[i].Key < results[j].Key })
+	return results
+}
+
+func (m *mockBucketProvider) Stat(_ context.Context, key string) (*ObjectInfo, error) {
+	if m.getErr != nil {
+		return nil, m.getErr
+	}
+	if _, ok := m.data[key]; !ok {
+		return nil, ErrNotFound
+	}
+	if info := m.info[key]; info != nil {
+		return info, nil
+	}
+	return &ObjectInfo{Key: key}, nil
+}
+
+func (m *mockBucketProvider) ListPage(_ context.Context, prefix, cursor string, limit int) (infos []ObjectInfo, next string, err error) {
+	if m.listErr != nil {
+		return nil, "", m.listErr
+	}
+	all := m.sortedInfos(prefix)
+	pageSize := limit
+	if pageSize <= 0 {
+		pageSize = len(all)
+	}
+	infos = make([]ObjectInfo, 0, pageSize)
+	for _, info := range all {
+		if cursor != "" && info.Key <= cursor {
+			continue
+		}
+		infos = append(infos, info)
+		if len(infos) >= pageSize {
+			next = info.Key
+			break
+		}
+	}
+	return infos, next, nil
+}
+
+func (m *mockBucketProvider) ListLevel(_ context.Context, prefix, delimiter, _ string, _ int) (*Level, error) {
+	if m.listErr != nil {
+		return nil, m.listErr
+	}
+	// Emulate a native listing by folding the flat listing.
+	return FoldLevel(prefix, delimiter, m.sortedInfos(prefix)), nil
+}
+
+func (m *mockBucketProvider) GetStream(_ context.Context, key string) (io.ReadCloser, *ObjectInfo, error) {
+	if m.getErr != nil {
+		return nil, nil, m.getErr
+	}
+	data, ok := m.data[key]
+	if !ok {
+		return nil, nil, ErrNotFound
+	}
+	info := m.info[key]
+	if info == nil {
+		info = &ObjectInfo{Key: key}
+	}
+	return io.NopCloser(bytes.NewReader(data)), info, nil
+}
+
+func (m *mockBucketProvider) PutStream(_ context.Context, key string, r io.Reader, info *ObjectInfo) error {
+	if m.putErr != nil {
+		return m.putErr
+	}
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return err
+	}
+	m.data[key] = data
+	m.info[key] = info
+	return nil
 }
 
 type testPayload struct {
@@ -401,6 +485,224 @@ func TestBucket_WithGobCodec(t *testing.T) {
 	if retrieved.Data.Field1 != original.Data.Field1 || retrieved.Data.Field2 != original.Data.Field2 {
 		t.Errorf("roundtrip mismatch: got %+v, want %+v", retrieved.Data, original.Data)
 	}
+}
+
+func TestBucket_Stat(t *testing.T) {
+	provider := newMockBucketProvider()
+	bucket := NewBucket[testPayload](provider)
+	ctx := context.Background()
+
+	mod := time.Date(2026, 9, 17, 12, 0, 0, 0, time.UTC)
+	provider.data["obj1"] = []byte(`{}`)
+	provider.info["obj1"] = &ObjectInfo{Key: "obj1", Size: 2, LastModified: mod}
+
+	t.Run("existing key", func(t *testing.T) {
+		info, err := bucket.Stat(ctx, "obj1")
+		if err != nil {
+			t.Fatalf("Stat failed: %v", err)
+		}
+		if info.Key != "obj1" || info.Size != 2 {
+			t.Errorf("unexpected info: %+v", info)
+		}
+		if !info.LastModified.Equal(mod) {
+			t.Errorf("unexpected LastModified: %v", info.LastModified)
+		}
+	})
+
+	t.Run("missing key", func(t *testing.T) {
+		_, err := bucket.Stat(ctx, "missing")
+		if !errors.Is(err, ErrNotFound) {
+			t.Errorf("expected ErrNotFound, got %v", err)
+		}
+	})
+}
+
+func TestBucket_GetLastModified(t *testing.T) {
+	provider := newMockBucketProvider()
+	bucket := NewBucket[testPayload](provider)
+	ctx := context.Background()
+
+	mod := time.Date(2026, 9, 17, 12, 0, 0, 0, time.UTC)
+	provider.data["obj1"] = []byte(`{"field1":"a","field2":1}`)
+	provider.info["obj1"] = &ObjectInfo{Key: "obj1", LastModified: mod}
+
+	obj, err := bucket.Get(ctx, "obj1")
+	if err != nil {
+		t.Fatalf("Get failed: %v", err)
+	}
+	if !obj.LastModified.Equal(mod) {
+		t.Errorf("expected LastModified %v, got %v", mod, obj.LastModified)
+	}
+}
+
+func TestBucket_ListPage(t *testing.T) {
+	provider := newMockBucketProvider()
+	bucket := NewBucket[testPayload](provider)
+	ctx := context.Background()
+
+	for _, k := range []string{"p/a", "p/b", "p/c"} {
+		provider.data[k] = []byte(`{}`)
+		provider.info[k] = &ObjectInfo{Key: k}
+	}
+
+	// limit 1 over 3 keys yields all 3 across 3 calls, then an empty cursor.
+	var got []string
+	cursor := ""
+	calls := 0
+	for {
+		infos, next, err := bucket.ListPage(ctx, "p/", cursor, 1)
+		if err != nil {
+			t.Fatalf("ListPage failed: %v", err)
+		}
+		calls++
+		for _, info := range infos {
+			got = append(got, info.Key)
+		}
+		if next == "" {
+			break
+		}
+		cursor = next
+		if calls > 10 {
+			t.Fatal("pagination did not terminate")
+		}
+	}
+	if len(got) != 3 {
+		t.Errorf("expected 3 keys, got %d (%v)", len(got), got)
+	}
+}
+
+func TestBucket_ListLevel(t *testing.T) {
+	provider := newMockBucketProvider()
+	bucket := NewBucket[testPayload](provider)
+	ctx := context.Background()
+
+	for _, k := range []string{"a/x", "a/b/y", "a/b/z"} {
+		provider.data[k] = []byte(`{}`)
+		provider.info[k] = &ObjectInfo{Key: k}
+	}
+
+	level, err := bucket.ListLevel(ctx, "a/", "/", "", 0)
+	if err != nil {
+		t.Fatalf("ListLevel failed: %v", err)
+	}
+	if len(level.Objects) != 1 || level.Objects[0].Key != "a/x" {
+		t.Errorf("expected objects [a/x], got %+v", level.Objects)
+	}
+	if len(level.Prefixes) != 1 || level.Prefixes[0] != "a/b/" {
+		t.Errorf("expected prefixes [a/b/], got %v", level.Prefixes)
+	}
+}
+
+func TestBucket_Stream(t *testing.T) {
+	provider := newMockBucketProvider()
+	bucket := NewBucket[testPayload](provider)
+	ctx := context.Background()
+
+	payload := []byte("raw stream bytes")
+	if err := bucket.PutStream(ctx, "stream-key", bytes.NewReader(payload), &ObjectInfo{Key: "stream-key"}); err != nil {
+		t.Fatalf("PutStream failed: %v", err)
+	}
+
+	r, info, err := bucket.GetStream(ctx, "stream-key")
+	if err != nil {
+		t.Fatalf("GetStream failed: %v", err)
+	}
+	defer func() { _ = r.Close() }()
+	if info.Key != "stream-key" {
+		t.Errorf("unexpected key: %q", info.Key)
+	}
+	got, err := io.ReadAll(r)
+	if err != nil {
+		t.Fatalf("ReadAll failed: %v", err)
+	}
+	if !bytes.Equal(got, payload) {
+		t.Errorf("stream roundtrip mismatch: got %q, want %q", got, payload)
+	}
+
+	t.Run("missing key", func(t *testing.T) {
+		_, _, err := bucket.GetStream(ctx, "nope")
+		if !errors.Is(err, ErrNotFound) {
+			t.Errorf("expected ErrNotFound, got %v", err)
+		}
+	})
+}
+
+func TestFoldLevel(t *testing.T) {
+	info := func(keys ...string) []ObjectInfo {
+		out := make([]ObjectInfo, len(keys))
+		for i, k := range keys {
+			out[i] = ObjectInfo{Key: k}
+		}
+		return out
+	}
+	keysOf := func(infos []ObjectInfo) []string {
+		out := make([]string, len(infos))
+		for i, in := range infos {
+			out[i] = in.Key
+		}
+		return out
+	}
+	eq := func(a, b []string) bool {
+		if len(a) != len(b) {
+			return false
+		}
+		for i := range a {
+			if a[i] != b[i] {
+				return false
+			}
+		}
+		return true
+	}
+
+	t.Run("acceptance", func(t *testing.T) {
+		level := FoldLevel("a/", "/", info("a/x", "a/b/y", "a/b/z"))
+		if !eq(keysOf(level.Objects), []string{"a/x"}) {
+			t.Errorf("objects = %v, want [a/x]", keysOf(level.Objects))
+		}
+		if !eq(level.Prefixes, []string{"a/b/"}) {
+			t.Errorf("prefixes = %v, want [a/b/]", level.Prefixes)
+		}
+	})
+
+	t.Run("prefix without trailing delimiter", func(t *testing.T) {
+		level := FoldLevel("a", "/", info("a/x", "a/b/y"))
+		if len(level.Objects) != 0 {
+			t.Errorf("objects = %v, want []", keysOf(level.Objects))
+		}
+		if !eq(level.Prefixes, []string{"a/"}) {
+			t.Errorf("prefixes = %v, want [a/]", level.Prefixes)
+		}
+	})
+
+	t.Run("empty delimiter", func(t *testing.T) {
+		level := FoldLevel("a/", "", info("a/x", "a/b/y", "a/b/z"))
+		if !eq(keysOf(level.Objects), []string{"a/x", "a/b/y", "a/b/z"}) {
+			t.Errorf("objects = %v, want all three", keysOf(level.Objects))
+		}
+		if len(level.Prefixes) != 0 {
+			t.Errorf("prefixes = %v, want []", level.Prefixes)
+		}
+	})
+
+	t.Run("key equal to prefix", func(t *testing.T) {
+		level := FoldLevel("a/", "/", info("a/", "a/x"))
+		if !eq(keysOf(level.Objects), []string{"a/", "a/x"}) {
+			t.Errorf("objects = %v, want [a/ a/x]", keysOf(level.Objects))
+		}
+		if len(level.Prefixes) != 0 {
+			t.Errorf("prefixes = %v, want []", level.Prefixes)
+		}
+	})
+
+	t.Run("deep keys collapse into one prefix", func(t *testing.T) {
+		level := FoldLevel("a/", "/", info("a/b/c/d", "a/b/e/f", "a/b/g"))
+		if len(level.Objects) != 0 {
+			t.Errorf("objects = %v, want []", keysOf(level.Objects))
+		}
+		if !eq(level.Prefixes, []string{"a/b/"}) {
+			t.Errorf("prefixes = %v, want [a/b/]", level.Prefixes)
+		}
+	})
 }
 
 func TestBucket_Atomic(t *testing.T) {

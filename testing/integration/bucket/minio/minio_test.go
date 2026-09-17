@@ -81,3 +81,19 @@ func TestMinio_List(t *testing.T) {
 func TestMinio_Hooks(t *testing.T) {
 	bucket.RunHookTests(t, tc)
 }
+
+func TestMinio_Stat(t *testing.T) {
+	bucket.RunStatTests(t, tc)
+}
+
+func TestMinio_Stream(t *testing.T) {
+	bucket.RunStreamTests(t, tc)
+}
+
+func TestMinio_Pagination(t *testing.T) {
+	bucket.RunPaginationTests(t, tc)
+}
+
+func TestMinio_Hierarchy(t *testing.T) {
+	bucket.RunHierarchyTests(t, tc)
+}
