@@ -70,10 +70,6 @@ func TestMinio_Metadata(t *testing.T) {
 	bucket.RunMetadataTests(t, tc)
 }
 
-func TestMinio_Atomic(t *testing.T) {
-	bucket.RunAtomicTests(t, tc)
-}
-
 func TestMinio_List(t *testing.T) {
 	bucket.RunListTests(t, tc)
 }

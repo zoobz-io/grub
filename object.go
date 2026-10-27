@@ -10,21 +10,19 @@ import (
 // ObjectInfo is re-exported from internal/shared for the public API.
 type ObjectInfo = shared.ObjectInfo
 
-// Object wraps payload T with blob metadata for atomization.
-// The entire structure is atomizable, enabling field-level operations
-// on both metadata and payload.
+// Object wraps payload T with blob metadata.
 type Object[T any] struct {
-	Key         string            `json:"key" atom:"key"`
-	ContentType string            `json:"content_type" atom:"content_type"`
-	Size        int64             `json:"size" atom:"size"`
-	ETag        string            `json:"etag,omitempty" atom:"etag"`
-	Metadata    map[string]string `json:"metadata,omitempty" atom:"metadata"`
+	Key         string            `json:"key"`
+	ContentType string            `json:"content_type"`
+	Size        int64             `json:"size"`
+	ETag        string            `json:"etag,omitempty"`
+	Metadata    map[string]string `json:"metadata,omitempty"`
 
 	// LastModified is the time the object was last written.
 	// It is read-side only: populated by Bucket[T].Get and ignored on Put.
-	LastModified time.Time `json:"last_modified,omitempty" atom:"last_modified"`
+	LastModified time.Time `json:"last_modified,omitempty"`
 
-	Data T `json:"data" atom:"data"`
+	Data T `json:"data"`
 }
 
 // Level is one level of a key hierarchy under a prefix.

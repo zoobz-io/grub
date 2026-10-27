@@ -495,35 +495,3 @@ func TestStore_WithGobCodec(t *testing.T) {
 		t.Errorf("roundtrip mismatch: got %+v, want %+v", retrieved, original)
 	}
 }
-
-func TestStore_Atomic(t *testing.T) {
-	provider := newMockStoreProvider()
-	store := NewStore[testRecord](provider)
-	ctx := context.Background()
-
-	provider.data["atomic-key"] = []byte(`{"id":42,"name":"atomic"}`)
-
-	atomic := store.Atomic()
-	if atomic == nil {
-		t.Fatal("Atomic returned nil")
-	}
-
-	// Verify it returns the same instance
-	atomic2 := store.Atomic()
-	if atomic != atomic2 {
-		t.Error("Atomic should return cached instance")
-	}
-
-	// Test that atomic view works
-	a, err := atomic.Get(ctx, "atomic-key")
-	if err != nil {
-		t.Fatalf("Atomic Get failed: %v", err)
-	}
-	// atom uses struct field names as keys
-	if a.Ints["ID"] != 42 {
-		t.Errorf("unexpected ID: %v", a.Ints["ID"])
-	}
-	if a.Strings["Name"] != "atomic" {
-		t.Errorf("unexpected Name: %q", a.Strings["Name"])
-	}
-}

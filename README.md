@@ -99,7 +99,6 @@ func main() {
 | Blob Storage    | Files and documents with metadata                  | [Lifecycle](docs/3.guides/2.lifecycle.md)      |
 | SQL Database    | Structured records with query capabilities         | [Concepts](docs/2.learn/2.concepts.md)         |
 | Vector Search   | Similarity search with metadata filtering          | [Providers](docs/3.guides/1.providers.md)      |
-| Atomic Views    | Field-level access for encryption pipelines        | [Architecture](docs/2.learn/3.architecture.md) |
 | Semantic Errors | `ErrNotFound`, `ErrDuplicate` across all providers | [API Reference](docs/5.reference/1.api.md)     |
 | Custom Codecs   | JSON default, Gob available, or bring your own     | [Concepts](docs/2.learn/2.concepts.md)         |
 
@@ -108,7 +107,6 @@ func main() {
 - **Type-safe** — Generics eliminate runtime type assertions
 - **Swap backends** — Change providers without touching business logic
 - **Consistent errors** — Same error types whether you're using Redis or S3
-- **Atomic views** — Field-level access for framework internals (encryption, pipelines)
 - **Isolated dependencies** — Each provider is a separate module; only pull what you use
 
 ## Storage Without Coupling
@@ -147,7 +145,7 @@ One interface. Any backend. Zero vendor lock-in.
 
 - [Quickstart](docs/2.learn/1.quickstart.md) — Get started in minutes
 - [Core Concepts](docs/2.learn/2.concepts.md) — Stores, buckets, databases, codecs
-- [Architecture](docs/2.learn/3.architecture.md) — Layer model, atomic views, concurrency
+- [Architecture](docs/2.learn/3.architecture.md) — Layer model, concurrency, memory management
 
 ### Guides
 

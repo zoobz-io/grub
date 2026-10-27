@@ -61,10 +61,6 @@ func TestRedis_CRUD(t *testing.T) {
 	kv.RunCRUDTests(t, tc)
 }
 
-func TestRedis_Atomic(t *testing.T) {
-	kv.RunAtomicTests(t, tc)
-}
-
 func TestRedis_TTL(t *testing.T) {
 	kv.RunTTLTests(t, tc)
 }

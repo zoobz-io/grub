@@ -113,10 +113,6 @@ func TestAzure_Metadata(t *testing.T) {
 	})
 }
 
-func TestAzure_Atomic(t *testing.T) {
-	bucket.RunAtomicTests(t, tc)
-}
-
 func TestAzure_List(t *testing.T) {
 	bucket.RunListTests(t, tc)
 }

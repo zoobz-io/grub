@@ -114,10 +114,6 @@ func TestPinecone_Batch(t *testing.T) {
 	vector.RunBatchTests(t, tc)
 }
 
-func TestPinecone_Atomic(t *testing.T) {
-	vector.RunAtomicTests(t, tc)
-}
-
 func TestPinecone_Query(t *testing.T) {
 	// Pinecone doesn't support range, like, or contains operators
 	vector.RunQueryTests(t, tc, vector.QueryOperators{

@@ -4,13 +4,10 @@ import (
 	"context"
 	"errors"
 	"strings"
-	"sync"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/zoobz-io/astql"
-	"github.com/zoobz-io/atom"
 	"github.com/zoobz-io/edamame"
-	"github.com/zoobz-io/grub/internal/atomix"
 	"github.com/zoobz-io/soy"
 )
 
@@ -25,16 +22,14 @@ var (
 
 // Database provides type-safe SQL storage operations for T.
 // Constructed via NewDatabase (executor path) or NewDatabaseFromProvider (provider path).
-// Builder methods (Query, Select, Insert, etc.), Tx variants, Executor(), and Atomic()
+// Builder methods (Query, Select, Insert, etc.), Tx variants, and Executor()
 // require the executor path and will panic if called on a provider-backed instance.
 type Database[T any] struct {
-	executor   *edamame.Executor[T] // set by NewDatabase (nil in provider path)
-	provider   DatabaseProvider     // set by NewDatabaseFromProvider (nil in executor path)
-	codec      Codec                // set by NewDatabaseFromProvider (nil in executor path)
-	keyCol     string
-	tableName  string
-	atomic     *atomix.Database[T] // lazily created via Atomic()
-	atomicOnce sync.Once
+	executor  *edamame.Executor[T] // set by NewDatabase (nil in provider path)
+	provider  DatabaseProvider     // set by NewDatabaseFromProvider (nil in executor path)
+	codec     Codec                // set by NewDatabaseFromProvider (nil in executor path)
+	keyCol    string
+	tableName string
 }
 
 // findPrimaryKey inspects the struct metadata and returns the db column name
@@ -98,7 +93,7 @@ func NewDatabase[T any](db *sqlx.DB, table string, renderer astql.Renderer) *Dat
 
 // NewDatabaseFromProvider creates a Database for type T backed by a DatabaseProvider.
 // Uses JSON codec by default. Builder methods (Query, Select, Insert, Modify, Remove, Count),
-// Tx variants, Executor(), and Atomic() are not available and will panic if called.
+// Tx variants, and Executor() are not available and will panic if called.
 func NewDatabaseFromProvider[T any](provider DatabaseProvider, table string) *Database[T] {
 	return &Database[T]{
 		provider:  provider,
@@ -108,7 +103,7 @@ func NewDatabaseFromProvider[T any](provider DatabaseProvider, table string) *Da
 }
 
 // NewDatabaseFromProviderWithCodec creates a Database for type T with a custom codec.
-// Builder methods, Tx variants, Executor(), and Atomic() are not available and will panic if called.
+// Builder methods, Tx variants, and Executor() are not available and will panic if called.
 func NewDatabaseFromProviderWithCodec[T any](provider DatabaseProvider, table string, codec Codec) *Database[T] {
 	return &Database[T]{
 		provider:  provider,
@@ -462,25 +457,4 @@ func (d *Database[T]) ExecUpdateTx(ctx context.Context, tx *sqlx.Tx, stmt edamam
 func (d *Database[T]) ExecAggregateTx(ctx context.Context, tx *sqlx.Tx, stmt edamame.AggregateStatement, params map[string]any) (float64, error) {
 	d.requireExecutor("ExecAggregateTx")
 	return d.executor.ExecAggregateTx(ctx, tx, stmt, params)
-}
-
-// Atomic returns an atom-based view of this database.
-// The returned atomix.Database satisfies the AtomicDatabase interface.
-// The instance is created once and cached for subsequent calls.
-// Panics if T is not atomizable (a programmer error) or if constructed from a provider.
-func (d *Database[T]) Atomic() AtomicDatabase {
-	d.requireExecutor("Atomic")
-	d.atomicOnce.Do(func() {
-		atomizer, err := atom.Use[T]()
-		if err != nil {
-			panic("grub: invalid type for atomization: " + err.Error())
-		}
-		d.atomic = atomix.New(
-			d.executor,
-			d.keyCol,
-			d.tableName,
-			atomizer.Spec(),
-		)
-	})
-	return d.atomic
 }

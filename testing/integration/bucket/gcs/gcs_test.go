@@ -93,10 +93,6 @@ func TestGCS_Metadata(t *testing.T) {
 	bucket.RunMetadataTests(t, tc)
 }
 
-func TestGCS_Atomic(t *testing.T) {
-	bucket.RunAtomicTests(t, tc)
-}
-
 func TestGCS_List(t *testing.T) {
 	bucket.RunListTests(t, tc)
 }

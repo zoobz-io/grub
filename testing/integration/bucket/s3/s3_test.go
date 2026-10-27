@@ -108,10 +108,6 @@ func TestS3_Metadata(t *testing.T) {
 	bucket.RunMetadataTests(t, tc)
 }
 
-func TestS3_Atomic(t *testing.T) {
-	bucket.RunAtomicTests(t, tc)
-}
-
 func TestS3_List(t *testing.T) {
 	bucket.RunListTests(t, tc)
 }

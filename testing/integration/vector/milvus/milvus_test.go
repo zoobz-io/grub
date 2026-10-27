@@ -141,10 +141,6 @@ func TestMilvus_Batch(t *testing.T) {
 	vector.RunBatchTests(t, tc)
 }
 
-func TestMilvus_Atomic(t *testing.T) {
-	vector.RunAtomicTests(t, tc)
-}
-
 func TestMilvus_Query(t *testing.T) {
 	vector.RunQueryTests(t, tc, vector.QueryOperators{
 		Range:    true,

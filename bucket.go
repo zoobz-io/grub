@@ -3,19 +3,13 @@ package grub
 import (
 	"context"
 	"io"
-	"sync"
-
-	"github.com/zoobz-io/atom"
-	"github.com/zoobz-io/grub/internal/atomix"
 )
 
 // Bucket provides type-safe blob storage operations for T.
 // Wraps a BucketProvider, handling serialization of Object[T] to/from bytes.
 type Bucket[T any] struct {
-	provider   BucketProvider
-	codec      Codec
-	atomic     *atomix.Bucket[T]
-	atomicOnce sync.Once
+	provider BucketProvider
+	codec    Codec
 }
 
 // NewBucket creates a Bucket for type T backed by the given provider.
@@ -134,19 +128,4 @@ func (b *Bucket[T]) GetStream(ctx context.Context, key string) (io.ReadCloser, *
 // info.Size may be set if known; providers handle unknown-size streams internally.
 func (b *Bucket[T]) PutStream(ctx context.Context, key string, r io.Reader, info *ObjectInfo) error {
 	return b.provider.PutStream(ctx, key, r, info)
-}
-
-// Atomic returns an atom-based view of this bucket.
-// The returned atomix.Bucket satisfies the AtomicBucket interface.
-// The instance is created once and cached for subsequent calls.
-// Panics if T is not atomizable (a programmer error).
-func (b *Bucket[T]) Atomic() *atomix.Bucket[T] {
-	b.atomicOnce.Do(func() {
-		atomizer, err := atom.Use[T]()
-		if err != nil {
-			panic("grub: invalid type for atomization: " + err.Error())
-		}
-		b.atomic = atomix.NewBucket[T](b.provider, b.codec, atomizer.Spec())
-	})
-	return b.atomic
 }

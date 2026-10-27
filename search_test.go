@@ -648,35 +648,6 @@ func TestSearch_RoundTrip(t *testing.T) {
 	}
 }
 
-func TestSearch_Atomic(t *testing.T) {
-	provider := newMockSearchProvider()
-	search := NewSearch[testProduct](provider, "products")
-	ctx := context.Background()
-
-	provider.ensureIndex("products")
-	provider.docs["products"]["atomic-1"] = []byte(`{"title":"Atomic Product","price":42.0,"category":"atomic"}`)
-
-	atomic := search.Atomic()
-	if atomic == nil {
-		t.Fatal("Atomic returned nil")
-	}
-
-	// Verify it returns the same instance
-	atomic2 := search.Atomic()
-	if atomic != atomic2 {
-		t.Error("Atomic should return cached instance")
-	}
-
-	// Test that atomic view works
-	doc, err := atomic.Get(ctx, "atomic-1")
-	if err != nil {
-		t.Fatalf("Atomic Get failed: %v", err)
-	}
-	if doc.Content.Strings["Title"] != "Atomic Product" {
-		t.Errorf("unexpected Title: %q", doc.Content.Strings["Title"])
-	}
-}
-
 // hookedProduct tests lifecycle hooks.
 type hookedProduct struct {
 	Title         string `json:"title"`

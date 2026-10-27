@@ -43,10 +43,6 @@ func TestBolt_CRUD(t *testing.T) {
 	kv.RunCRUDTests(t, tc)
 }
 
-func TestBolt_Atomic(t *testing.T) {
-	kv.RunAtomicTests(t, tc)
-}
-
 // Note: Bolt does not support TTL, so we skip TTL tests.
 
 func TestBolt_Batch(t *testing.T) {

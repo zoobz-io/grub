@@ -44,10 +44,6 @@ func TestBadger_CRUD(t *testing.T) {
 	kv.RunCRUDTests(t, tc)
 }
 
-func TestBadger_Atomic(t *testing.T) {
-	kv.RunAtomicTests(t, tc)
-}
-
 func TestBadger_TTL(t *testing.T) {
 	kv.RunTTLTests(t, tc)
 }
